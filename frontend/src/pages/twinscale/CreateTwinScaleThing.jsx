@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import useTenantStore from '@/store/useTenantStore'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import DTDLSelectionModal from '@/components/dtdl/DTDLSelectionModal'
+import DTDLValidationPanel from '@/components/dtdl/DTDLValidationPanel'
 
 const CreateTwinScaleThing = () => {
   const { t } = useTranslation()
@@ -241,25 +242,43 @@ spec:
 
     const summary = formData.dtdl_interface_summary
 
-    // Auto-fill properties from DTDL
-    const dtdlProperties = summary.propertyNames?.map((name) => ({
-      name,
-      type: 'string', // Default type, would need full interface to get actual type
-      description: '',
-      writable: true,
-      unit: '',
+    // Auto-fill properties with full schema details from DTDL
+    const dtdlProperties = summary.propertyDetails?.map((prop) => ({
+      name: prop.name,
+      type: prop.type || 'string',           // Use DTDL type
+      description: prop.description || '',   // Use DTDL description
+      writable: prop.writable ?? true,       // Use DTDL writable flag
+      unit: prop.unit || '',                 // Use DTDL unit
+      minimum: null,                         // Could extract from minValue property
+      maximum: null,                         // Could extract from maxValue property
+    })) || []
+
+    // Auto-fill telemetry as properties (TwinScale treats them similarly)
+    const dtdlTelemetry = summary.telemetryDetails?.map((tel) => ({
+      name: tel.name,
+      type: tel.type || 'float',            // Telemetry is usually numeric
+      description: tel.description || '',   // Use DTDL description
+      writable: false,                       // Telemetry is read-only
+      unit: tel.unit || '',                  // Use DTDL unit
       minimum: null,
       maximum: null,
     })) || []
 
+    // Auto-fill commands with descriptions
+    const dtdlCommands = summary.commandDetails?.map((cmd) => ({
+      name: cmd.name,
+      description: cmd.description || '',
+    })) || []
+
     setFormData({
       ...formData,
-      properties: [...formData.properties, ...dtdlProperties],
+      properties: [...formData.properties, ...dtdlProperties, ...dtdlTelemetry],
+      commands: [...formData.commands, ...dtdlCommands],
     })
 
     toast({
       title: t('common.success'),
-      description: t('dtdl.fieldsAutoFilled'),
+      description: `Auto-filled ${dtdlProperties.length} properties, ${dtdlTelemetry.length} telemetry, ${dtdlCommands.length} commands from DTDL interface`,
     })
   }
 
@@ -847,56 +866,66 @@ spec:
           </CardContent>
         </Card>
 
-        {/* Right: YAML Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('createThing.yamlPreview')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="interface">
-              <TabsList className="w-full mb-4">
-                <TabsTrigger value="interface" className="flex-1">
-                  {t('createThing.interfaceYaml')}
-                </TabsTrigger>
-                <TabsTrigger value="instance" className="flex-1">
-                  {t('createThing.instanceYaml')}
-                </TabsTrigger>
-              </TabsList>
+        {/* Right: YAML Preview & Validation */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('createThing.yamlPreview')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="interface">
+                <TabsList className="w-full mb-4">
+                  <TabsTrigger value="interface" className="flex-1">
+                    {t('createThing.interfaceYaml')}
+                  </TabsTrigger>
+                  <TabsTrigger value="instance" className="flex-1">
+                    {t('createThing.instanceYaml')}
+                  </TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="interface">
-                <div className="border rounded-md overflow-hidden">
-                  <Editor
-                    height="500px"
-                    defaultLanguage="yaml"
-                    value={interfaceYaml}
-                    options={{
-                      minimap: { enabled: false },
-                      readOnly: true,
-                      wordWrap: 'on',
-                      lineNumbers: 'on',
-                    }}
-                  />
-                </div>
-              </TabsContent>
+                <TabsContent value="interface">
+                  <div className="border rounded-md overflow-hidden">
+                    <Editor
+                      height="400px"
+                      defaultLanguage="yaml"
+                      value={interfaceYaml}
+                      options={{
+                        minimap: { enabled: false },
+                        readOnly: true,
+                        wordWrap: 'on',
+                        lineNumbers: 'on',
+                      }}
+                    />
+                  </div>
+                </TabsContent>
 
-              <TabsContent value="instance">
-                <div className="border rounded-md overflow-hidden">
-                  <Editor
-                    height="500px"
-                    defaultLanguage="yaml"
-                    value={instanceYaml}
-                    options={{
-                      minimap: { enabled: false },
-                      readOnly: true,
-                      wordWrap: 'on',
-                      lineNumbers: 'on',
-                    }}
-                  />
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+                <TabsContent value="instance">
+                  <div className="border rounded-md overflow-hidden">
+                    <Editor
+                      height="400px"
+                      defaultLanguage="yaml"
+                      value={instanceYaml}
+                      options={{
+                        minimap: { enabled: false },
+                        readOnly: true,
+                        wordWrap: 'on',
+                        lineNumbers: 'on',
+                      }}
+                    />
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+
+          {/* DTDL Validation Panel */}
+          {formData.dtdl_interface && (
+            <DTDLValidationPanel
+              formData={formData}
+              dtdlInterface={formData.dtdl_interface}
+            />
+          )}
+        </div>
       </div>
 
       {/* DTDL Selection Modal */}
@@ -904,7 +933,7 @@ spec:
         isOpen={showDTDLModal}
         onClose={() => setShowDTDLModal(false)}
         onSelect={handleDTDLSelect}
-        thingType={formData.thing_type}
+        thingType={null}
         domain={null}
       />
     </div>

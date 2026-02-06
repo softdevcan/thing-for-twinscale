@@ -1,0 +1,145 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:iodt2:BaseStation;1",
+  "@type": "Interface",
+  "displayName": "Base Station",
+  "description": "Digital twin for cellular base stations in emergency communication",
+  "extends": "dtmi:iodt2:BaseTwin;1",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "stationId",
+      "displayName": "Station ID",
+      "description": "Unique identifier for the base station",
+      "schema": "string",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "technology",
+      "displayName": "Technology Type",
+      "description": "Cellular technology type",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          {
+            "name": "4g_lte",
+            "displayName": "4G LTE",
+            "enumValue": "4g_lte"
+          },
+          {
+            "name": "5g",
+            "displayName": "5G",
+            "enumValue": "5g"
+          },
+          {
+            "name": "3g",
+            "displayName": "3G",
+            "enumValue": "3g"
+          }
+        ]
+      },
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "coverageRadius",
+      "displayName": "Coverage Radius",
+      "description": "Effective coverage radius in meters",
+      "schema": "double",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "hasBackupPower",
+      "displayName": "Backup Power Available",
+      "description": "Whether the station has backup power supply",
+      "schema": "boolean",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "priorityLevel",
+      "displayName": "Priority Level",
+      "description": "Emergency priority level",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          {
+            "name": "normal",
+            "displayName": "Normal",
+            "enumValue": "normal"
+          },
+          {
+            "name": "emergency",
+            "displayName": "Emergency",
+            "enumValue": "emergency"
+          },
+          {
+            "name": "critical",
+            "displayName": "Critical",
+            "enumValue": "critical"
+          }
+        ]
+      },
+      "writable": true
+    },
+    {
+      "@type": "Telemetry",
+      "name": "signalStrength",
+      "displayName": "Signal Strength",
+      "description": "Current signal strength",
+      "schema": "double",
+      "unit": "decibel"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "activeConnections",
+      "displayName": "Active Connections",
+      "description": "Number of active device connections",
+      "schema": "integer",
+      "unit": "count"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "powerLevel",
+      "displayName": "Power Level",
+      "description": "Current power level percentage",
+      "schema": "double",
+      "unit": "percent"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "networkLoad",
+      "displayName": "Network Load",
+      "description": "Current network utilization percentage",
+      "schema": "double",
+      "unit": "percent"
+    },
+    {
+      "@type": "Command",
+      "name": "activateEmergencyMode",
+      "displayName": "Activate Emergency Mode",
+      "description": "Switch to emergency communication mode"
+    },
+    {
+      "@type": "Command",
+      "name": "boostSignal",
+      "displayName": "Boost Signal",
+      "description": "Increase signal transmission power"
+    },
+    {
+      "@type": "Command",
+      "name": "switchToBackupPower",
+      "displayName": "Switch to Backup Power",
+      "description": "Activate backup power supply"
+    }
+  ],
+  "_registry": {
+    "category": "seismic",
+    "tags": ["basestation", "communication", "emergency", "5g"],
+    "thingType": "device"
+  }
+}

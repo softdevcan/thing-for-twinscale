@@ -86,19 +86,75 @@
       "thingType": "sensor",
       "telemetry": ["pm25"],
       "properties": ["aqi", "aqiCategory", "alertThreshold"]
+    },
+    {
+      "dtmi": "dtmi:iodt2:Building;1",
+      "displayName": "Building",
+      "category": "seismic",
+      "filePath": "domain/seismic/Building.json",
+      "description": "Building structure for seismic monitoring",
+      "extends": ["dtmi:iodt2:BaseTwin;1"],
+      "tags": ["building", "structure", "seismic", "earthquake"],
+      "thingType": "component",
+      "telemetry": ["vibrationLevel", "structuralHealth", "tiltAngle"],
+      "properties": ["buildingType", "floors", "constructionYear", "seismicRating", "occupancy"],
+      "commands": ["evacuate", "lockdown"]
+    },
+    {
+      "dtmi": "dtmi:iodt2:Street;1",
+      "displayName": "Street",
+      "category": "seismic",
+      "filePath": "domain/seismic/Street.json",
+      "description": "Street infrastructure for seismic monitoring",
+      "extends": ["dtmi:iodt2:BaseTwin;1"],
+      "tags": ["street", "infrastructure", "seismic", "evacuation"],
+      "thingType": "component",
+      "telemetry": ["surfaceDamage", "trafficFlow", "blockageLevel"],
+      "properties": ["streetName", "streetType", "length", "lanes", "isEvacuationRoute"],
+      "commands": ["closeStreet", "redirectTraffic"]
+    },
+    {
+      "dtmi": "dtmi:iodt2:BaseStation;1",
+      "displayName": "Base Station",
+      "category": "seismic",
+      "filePath": "domain/seismic/BaseStation.json",
+      "description": "Cellular base station for emergency communication",
+      "extends": ["dtmi:iodt2:BaseTwin;1"],
+      "tags": ["basestation", "communication", "emergency", "5g"],
+      "thingType": "device",
+      "telemetry": ["signalStrength", "activeConnections", "powerLevel", "networkLoad"],
+      "properties": ["stationId", "technology", "coverageRadius", "hasBackupPower", "priorityLevel"],
+      "commands": ["activateEmergencyMode", "boostSignal", "switchToBackupPower"]
+    },
+    {
+      "dtmi": "dtmi:iodt2:SeismicSensor;1",
+      "displayName": "Seismic Sensor",
+      "category": "seismic",
+      "filePath": "domain/seismic/SeismicSensor.json",
+      "description": "Seismic monitoring sensor (accelerometer)",
+      "extends": ["dtmi:iodt2:SensorTwin;1"],
+      "tags": ["sensor", "seismic", "earthquake", "accelerometer"],
+      "thingType": "sensor",
+      "telemetry": ["accelerationX", "accelerationY", "accelerationZ", "peakGroundAcceleration", "magnitude", "frequency"],
+      "properties": ["sensorType", "sensitivity"],
+      "commands": ["calibrate", "triggerAlert"]
     }
   ],
   "thingTypeMapping": {
     "device": [
-      "dtmi:iodt2:WeatherStation;1"
+      "dtmi:iodt2:WeatherStation;1",
+      "dtmi:iodt2:BaseStation;1"
     ],
     "sensor": [
       "dtmi:iodt2:TemperatureSensor;1",
       "dtmi:iodt2:HumiditySensor;1",
-      "dtmi:iodt2:PM25Sensor;1"
+      "dtmi:iodt2:PM25Sensor;1",
+      "dtmi:iodt2:SeismicSensor;1"
     ],
     "component": [
-      "dtmi:iodt2:WeatherStation;1"
+      "dtmi:iodt2:WeatherStation;1",
+      "dtmi:iodt2:Building;1",
+      "dtmi:iodt2:Street;1"
     ]
   },
   "domainMapping": {
@@ -109,6 +165,12 @@
     ],
     "air_quality": [
       "dtmi:iodt2:PM25Sensor;1"
+    ],
+    "seismic": [
+      "dtmi:iodt2:Building;1",
+      "dtmi:iodt2:Street;1",
+      "dtmi:iodt2:BaseStation;1",
+      "dtmi:iodt2:SeismicSensor;1"
     ]
   }
 }

@@ -219,6 +219,23 @@
     "autoFill": "Auto-fill fields",
     "autoFillDescription": "Automatically populate telemetry and property fields based on selected DTDL interface",
     "interfaceSelected": "DTDL interface selected: {{name}}",
-    "fieldsAutoFilled": "Fields auto-filled from DTDL interface"
+    "fieldsAutoFilled": "Fields auto-filled from DTDL interface",
+    "fieldsAutoFilledComplete": "Auto-filled {{properties}} properties, {{telemetry}} telemetry, {{commands}} commands from DTDL interface",
+    "validationPanel": "DTDL Compliance",
+    "compatibilityScore": "Compatibility Score",
+    "matchedProperties": "Matched Properties",
+    "missingProperties": "Missing Properties",
+    "validationIssues": "Validation Issues",
+    "bindingTab": "DTDL Binding",
+    "noDTDLBinding": "No DTDL interface binding",
+    "viewFullInterface": "View Full DTDL Interface",
+    "propertyMapping": "Property Mapping",
+    "propertyDetails": "Property Details",
+    "telemetryDetails": "Telemetry Details",
+    "validating": "Validating...",
+    "addPropertiesToValidate": "Add properties to see validation results",
+    "fullyCompatible": "Thing is fully compatible with selected DTDL interface",
+    "matchedTelemetry": "Matched Telemetry",
+    "missingTelemetry": "Missing Telemetry"
   }
 }

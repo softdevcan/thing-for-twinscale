@@ -1,0 +1,146 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:iodt2:Building;1",
+  "@type": "Interface",
+  "displayName": "Building",
+  "description": "Digital twin for building structures in seismic monitoring",
+  "extends": "dtmi:iodt2:BaseTwin;1",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "buildingType",
+      "displayName": "Building Type",
+      "description": "Type of building structure",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          {
+            "name": "residential",
+            "displayName": "Residential",
+            "enumValue": "residential"
+          },
+          {
+            "name": "commercial",
+            "displayName": "Commercial",
+            "enumValue": "commercial"
+          },
+          {
+            "name": "industrial",
+            "displayName": "Industrial",
+            "enumValue": "industrial"
+          },
+          {
+            "name": "hospital",
+            "displayName": "Hospital",
+            "enumValue": "hospital"
+          },
+          {
+            "name": "school",
+            "displayName": "School",
+            "enumValue": "school"
+          }
+        ]
+      },
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "floors",
+      "displayName": "Number of Floors",
+      "description": "Total number of floors in the building",
+      "schema": "integer",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "constructionYear",
+      "displayName": "Construction Year",
+      "description": "Year when the building was constructed",
+      "schema": "integer",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "seismicRating",
+      "displayName": "Seismic Rating",
+      "description": "Seismic resistance rating of the building",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          {
+            "name": "low",
+            "displayName": "Low Risk",
+            "enumValue": "low"
+          },
+          {
+            "name": "moderate",
+            "displayName": "Moderate Risk",
+            "enumValue": "moderate"
+          },
+          {
+            "name": "high",
+            "displayName": "High Risk",
+            "enumValue": "high"
+          },
+          {
+            "name": "critical",
+            "displayName": "Critical Risk",
+            "enumValue": "critical"
+          }
+        ]
+      },
+      "writable": true
+    },
+    {
+      "@type": "Property",
+      "name": "occupancy",
+      "displayName": "Current Occupancy",
+      "description": "Estimated number of people in the building",
+      "schema": "integer",
+      "writable": true
+    },
+    {
+      "@type": "Telemetry",
+      "name": "vibrationLevel",
+      "displayName": "Vibration Level",
+      "description": "Current vibration intensity detected",
+      "schema": "double",
+      "unit": "metrePerSecondSquared"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "structuralHealth",
+      "displayName": "Structural Health Index",
+      "description": "Overall structural health score (0-100)",
+      "schema": "double",
+      "unit": "percent"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "tiltAngle",
+      "displayName": "Tilt Angle",
+      "description": "Building tilt angle from vertical",
+      "schema": "double",
+      "unit": "degreeOfArc"
+    },
+    {
+      "@type": "Command",
+      "name": "evacuate",
+      "displayName": "Initiate Evacuation",
+      "description": "Trigger evacuation protocol for the building"
+    },
+    {
+      "@type": "Command",
+      "name": "lockdown",
+      "displayName": "Lockdown Building",
+      "description": "Secure the building and prevent entry/exit"
+    }
+  ],
+  "_registry": {
+    "category": "seismic",
+    "tags": ["building", "structure", "seismic", "earthquake"],
+    "thingType": "component"
+  }
+}

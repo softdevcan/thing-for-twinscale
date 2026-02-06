@@ -374,13 +374,13 @@ class DTDLConverterService:
 
     def get_interface_summary(self, dtmi: str) -> Dict[str, Any]:
         """
-        Get a summary of DTDL interface for UI display
+        Get a summary of DTDL interface for UI display with full schema details
 
         Args:
             dtmi: DTDL interface identifier
 
         Returns:
-            Summary dictionary with counts and lists
+            Summary dictionary with counts, lists, and detailed schema information
         """
         interface = self.loader.get_interface_details(dtmi)
         if not interface:
@@ -389,19 +389,62 @@ class DTDLConverterService:
         contents = interface.get("contents", [])
         summary = interface.get("_summary", {})
 
+        # Extract detailed telemetry information
+        telemetry_details = []
+        for content in contents:
+            if content.get("@type") == "Telemetry":
+                telemetry_details.append({
+                    "name": content.get("name"),
+                    "displayName": content.get("displayName", content.get("name")),
+                    "description": content.get("description", ""),
+                    "schema": content.get("schema"),
+                    "type": self._convert_dtdl_schema(content.get("schema")),
+                    "unit": content.get("unit", "")
+                })
+
+        # Extract detailed property information
+        property_details = []
+        for content in contents:
+            if content.get("@type") == "Property":
+                property_details.append({
+                    "name": content.get("name"),
+                    "displayName": content.get("displayName", content.get("name")),
+                    "description": content.get("description", ""),
+                    "schema": content.get("schema"),
+                    "type": self._convert_dtdl_schema(content.get("schema")),
+                    "writable": content.get("writable", False),
+                    "unit": content.get("unit", "")
+                })
+
+        # Extract detailed command information
+        command_details = []
+        for content in contents:
+            if content.get("@type") == "Command":
+                command_details.append({
+                    "name": content.get("name"),
+                    "displayName": content.get("displayName", content.get("name")),
+                    "description": content.get("description", "")
+                })
+
         return {
             "dtmi": dtmi,
             "displayName": interface.get("displayName"),
             "description": interface.get("description"),
             "extends": interface.get("extends"),
-            "telemetryCount": summary.get("telemetryCount", 0),
-            "propertyCount": summary.get("propertyCount", 0),
-            "commandCount": summary.get("commandCount", 0),
+            # Counts (backward compatible)
+            "telemetryCount": len(telemetry_details),
+            "propertyCount": len(property_details),
+            "commandCount": len(command_details),
             "componentCount": summary.get("componentCount", 0),
-            "telemetryNames": [c["name"] for c in contents if c.get("@type") == "Telemetry"],
-            "propertyNames": [c["name"] for c in contents if c.get("@type") == "Property"],
-            "commandNames": [c["name"] for c in contents if c.get("@type") == "Command"],
-            "componentNames": [c["name"] for c in contents if c.get("@type") == "Component"]
+            # Names (backward compatible)
+            "telemetryNames": [t["name"] for t in telemetry_details],
+            "propertyNames": [p["name"] for p in property_details],
+            "commandNames": [c["name"] for c in command_details],
+            "componentNames": [c["name"] for c in contents if c.get("@type") == "Component"],
+            # NEW: Detailed schema information for intelligent auto-fill
+            "telemetryDetails": telemetry_details,
+            "propertyDetails": property_details,
+            "commandDetails": command_details
         }
 
 

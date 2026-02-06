@@ -1,0 +1,116 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:iodt2:Street;1",
+  "@type": "Interface",
+  "displayName": "Street",
+  "description": "Digital twin for street infrastructure in seismic monitoring",
+  "extends": "dtmi:iodt2:BaseTwin;1",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "streetName",
+      "displayName": "Street Name",
+      "description": "Name of the street",
+      "schema": "string",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "streetType",
+      "displayName": "Street Type",
+      "description": "Classification of the street",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          {
+            "name": "main_road",
+            "displayName": "Main Road",
+            "enumValue": "main_road"
+          },
+          {
+            "name": "secondary_road",
+            "displayName": "Secondary Road",
+            "enumValue": "secondary_road"
+          },
+          {
+            "name": "local_street",
+            "displayName": "Local Street",
+            "enumValue": "local_street"
+          },
+          {
+            "name": "pedestrian",
+            "displayName": "Pedestrian",
+            "enumValue": "pedestrian"
+          }
+        ]
+      },
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "length",
+      "displayName": "Street Length",
+      "description": "Total length of the street segment",
+      "schema": "double",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "lanes",
+      "displayName": "Number of Lanes",
+      "description": "Total number of traffic lanes",
+      "schema": "integer",
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "isEvacuationRoute",
+      "displayName": "Evacuation Route",
+      "description": "Whether this street is designated as an evacuation route",
+      "schema": "boolean",
+      "writable": true
+    },
+    {
+      "@type": "Telemetry",
+      "name": "surfaceDamage",
+      "displayName": "Surface Damage",
+      "description": "Surface damage severity (0-100)",
+      "schema": "double",
+      "unit": "percent"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "trafficFlow",
+      "displayName": "Traffic Flow",
+      "description": "Current traffic flow rate",
+      "schema": "double",
+      "unit": "countPerMinute"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "blockageLevel",
+      "displayName": "Blockage Level",
+      "description": "Street blockage level (0=clear, 100=fully blocked)",
+      "schema": "double",
+      "unit": "percent"
+    },
+    {
+      "@type": "Command",
+      "name": "closeStreet",
+      "displayName": "Close Street",
+      "description": "Close the street to traffic"
+    },
+    {
+      "@type": "Command",
+      "name": "redirectTraffic",
+      "displayName": "Redirect Traffic",
+      "description": "Activate traffic redirection protocol"
+    }
+  ],
+  "_registry": {
+    "category": "seismic",
+    "tags": ["street", "infrastructure", "seismic", "evacuation"],
+    "thingType": "component"
+  }
+}

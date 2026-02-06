@@ -4,7 +4,7 @@
  * API client for DTDL interface browsing, searching, validation, and conversion.
  */
 
-import api from './index'
+import axiosInstance from '../services/axios'
 
 /**
  * List all DTDL interfaces with optional filtering
@@ -17,7 +17,7 @@ import api from './index'
  * @returns {Promise} Response with total count and interfaces list
  */
 export const listInterfaces = async (params = {}) => {
-  const response = await api.get('/v2/dtdl/interfaces', { params })
+  const response = await axiosInstance.get('/v2/dtdl/interfaces', { params })
   return response.data
 }
 
@@ -27,7 +27,7 @@ export const listInterfaces = async (params = {}) => {
  * @returns {Promise} Interface details with full DTDL JSON and summary
  */
 export const getInterfaceDetails = async (dtmi) => {
-  const response = await api.get(`/v2/dtdl/interfaces/${encodeURIComponent(dtmi)}`)
+  const response = await axiosInstance.get(`/v2/dtdl/interfaces/${encodeURIComponent(dtmi)}`)
   return response.data
 }
 
@@ -37,7 +37,7 @@ export const getInterfaceDetails = async (dtmi) => {
  * @returns {Promise} Summary with counts and field names
  */
 export const getInterfaceSummary = async (dtmi) => {
-  const response = await api.get(`/v2/dtdl/interfaces/${encodeURIComponent(dtmi)}/summary`)
+  const response = await axiosInstance.get(`/v2/dtdl/interfaces/${encodeURIComponent(dtmi)}/summary`)
   return response.data
 }
 
@@ -47,7 +47,7 @@ export const getInterfaceSummary = async (dtmi) => {
  * @returns {Promise} Requirements with schema information
  */
 export const getInterfaceRequirements = async (dtmi) => {
-  const response = await api.get(`/v2/dtdl/interfaces/${encodeURIComponent(dtmi)}/requirements`)
+  const response = await axiosInstance.get(`/v2/dtdl/interfaces/${encodeURIComponent(dtmi)}/requirements`)
   return response.data
 }
 
@@ -62,7 +62,7 @@ export const getInterfaceRequirements = async (dtmi) => {
  * @returns {Promise} Suggested interfaces with match scores
  */
 export const suggestInterfaces = async (data) => {
-  const response = await api.post('/v2/dtdl/suggest', data)
+  const response = await axiosInstance.post('/v2/dtdl/suggest', data)
   return response.data
 }
 
@@ -75,7 +75,7 @@ export const suggestInterfaces = async (data) => {
  * @returns {Promise} Validation result with compatibility score and issues
  */
 export const validateThing = async (data) => {
-  const response = await api.post('/v2/dtdl/validate', data)
+  const response = await axiosInstance.post('/v2/dtdl/validate', data)
   return response.data
 }
 
@@ -89,7 +89,7 @@ export const validateThing = async (data) => {
  * @returns {Promise} List of matches sorted by combined score
  */
 export const findBestMatch = async (data) => {
-  const response = await api.post('/v2/dtdl/find-best-match', data)
+  const response = await axiosInstance.post('/v2/dtdl/find-best-match', data)
   return response.data
 }
 
@@ -102,7 +102,7 @@ export const findBestMatch = async (data) => {
  * @returns {Promise} TwinInterface and TwinInstance YAML templates
  */
 export const convertToTwinScale = async (data) => {
-  const response = await api.post('/v2/dtdl/convert/to-twinscale', data)
+  const response = await axiosInstance.post('/v2/dtdl/convert/to-twinscale', data)
   return response.data
 }
 
@@ -114,7 +114,7 @@ export const convertToTwinScale = async (data) => {
  * @returns {Promise} Enriched Thing data with DTDL annotations
  */
 export const enrichWithDTDL = async (data) => {
-  const response = await api.post('/v2/dtdl/enrich', data)
+  const response = await axiosInstance.post('/v2/dtdl/enrich', data)
   return response.data
 }
 
@@ -123,7 +123,7 @@ export const enrichWithDTDL = async (data) => {
  * @returns {Promise} Dictionary mapping domain names to DTMI lists
  */
 export const listDomains = async () => {
-  const response = await api.get('/v2/dtdl/domains')
+  const response = await axiosInstance.get('/v2/dtdl/domains')
   return response.data
 }
 
@@ -132,7 +132,7 @@ export const listDomains = async () => {
  * @returns {Promise} Dictionary mapping thing types to DTMI lists
  */
 export const listThingTypes = async () => {
-  const response = await api.get('/v2/dtdl/thing-types')
+  const response = await axiosInstance.get('/v2/dtdl/thing-types')
   return response.data
 }
 
@@ -141,7 +141,7 @@ export const listThingTypes = async () => {
  * @returns {Promise} Success status with interface count
  */
 export const reloadLibrary = async () => {
-  const response = await api.post('/v2/dtdl/reload')
+  const response = await axiosInstance.post('/v2/dtdl/reload')
   return response.data
 }
 

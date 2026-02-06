@@ -219,6 +219,23 @@
     "autoFill": "Otomatik doldur",
     "autoFillDescription": "Seçili DTDL arayüzüne göre telemetri ve özellik alanlarını otomatik olarak doldur",
     "interfaceSelected": "DTDL arayüzü seçildi: {{name}}",
-    "fieldsAutoFilled": "Alanlar DTDL arayüzünden otomatik olarak dolduruldu"
+    "fieldsAutoFilled": "Alanlar DTDL arayüzünden otomatik olarak dolduruldu",
+    "fieldsAutoFilledComplete": "DTDL arayüzünden {{properties}} özellik, {{telemetry}} telemetri, {{commands}} komut otomatik dolduruldu",
+    "validationPanel": "DTDL Uyumluluğu",
+    "compatibilityScore": "Uyumluluk Skoru",
+    "matchedProperties": "Eşleşen Özellikler",
+    "missingProperties": "Eksik Özellikler",
+    "validationIssues": "Doğrulama Sorunları",
+    "bindingTab": "DTDL Bağlantısı",
+    "noDTDLBinding": "DTDL arayüz bağlantısı yok",
+    "viewFullInterface": "Tam DTDL Arayüzünü Görüntüle",
+    "propertyMapping": "Özellik Eşleştirmesi",
+    "propertyDetails": "Özellik Detayları",
+    "telemetryDetails": "Telemetri Detayları",
+    "validating": "Doğrulanıyor...",
+    "addPropertiesToValidate": "Doğrulama sonuçlarını görmek için özellik ekleyin",
+    "fullyCompatible": "Thing seçili DTDL arayüzü ile tam uyumlu",
+    "matchedTelemetry": "Eşleşen Telemetri",
+    "missingTelemetry": "Eksik Telemetri"
   }
 }

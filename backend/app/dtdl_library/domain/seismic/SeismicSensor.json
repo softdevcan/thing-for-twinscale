@@ -1,0 +1,110 @@
+{
+  "@context": "dtmi:dtdl:context;2",
+  "@id": "dtmi:iodt2:SeismicSensor;1",
+  "@type": "Interface",
+  "displayName": "Seismic Sensor",
+  "description": "Digital twin for seismic monitoring sensors (accelerometers)",
+  "extends": "dtmi:iodt2:SensorTwin;1",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "sensorType",
+      "displayName": "Sensor Type",
+      "description": "Type of seismic sensor",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          {
+            "name": "accelerometer",
+            "displayName": "Accelerometer",
+            "enumValue": "accelerometer"
+          },
+          {
+            "name": "seismometer",
+            "displayName": "Seismometer",
+            "enumValue": "seismometer"
+          },
+          {
+            "name": "strong_motion",
+            "displayName": "Strong Motion Sensor",
+            "enumValue": "strong_motion"
+          }
+        ]
+      },
+      "writable": false
+    },
+    {
+      "@type": "Property",
+      "name": "sensitivity",
+      "displayName": "Sensitivity",
+      "description": "Sensor sensitivity level",
+      "schema": "double",
+      "writable": true
+    },
+    {
+      "@type": "Telemetry",
+      "name": "accelerationX",
+      "displayName": "X-Axis Acceleration",
+      "description": "Ground acceleration on X-axis",
+      "schema": "double",
+      "unit": "metrePerSecondSquared"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "accelerationY",
+      "displayName": "Y-Axis Acceleration",
+      "description": "Ground acceleration on Y-axis",
+      "schema": "double",
+      "unit": "metrePerSecondSquared"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "accelerationZ",
+      "displayName": "Z-Axis Acceleration",
+      "description": "Ground acceleration on Z-axis (vertical)",
+      "schema": "double",
+      "unit": "metrePerSecondSquared"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "peakGroundAcceleration",
+      "displayName": "Peak Ground Acceleration (PGA)",
+      "description": "Maximum ground acceleration detected",
+      "schema": "double",
+      "unit": "metrePerSecondSquared"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "magnitude",
+      "displayName": "Local Magnitude",
+      "description": "Estimated earthquake magnitude at sensor location",
+      "schema": "double"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "frequency",
+      "displayName": "Dominant Frequency",
+      "description": "Dominant frequency of seismic waves",
+      "schema": "double",
+      "unit": "hertz"
+    },
+    {
+      "@type": "Command",
+      "name": "calibrate",
+      "displayName": "Calibrate Sensor",
+      "description": "Perform sensor calibration"
+    },
+    {
+      "@type": "Command",
+      "name": "triggerAlert",
+      "displayName": "Trigger Alert",
+      "description": "Manually trigger seismic alert"
+    }
+  ],
+  "_registry": {
+    "category": "seismic",
+    "tags": ["sensor", "seismic", "earthquake", "accelerometer"],
+    "thingType": "sensor"
+  }
+}

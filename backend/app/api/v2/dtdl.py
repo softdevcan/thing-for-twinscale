@@ -5,15 +5,14 @@ Endpoints for browsing, searching, and retrieving DTDL interfaces from the libra
 Supports interface suggestion based on TwinScale Thing data.
 """
 
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 import logging
 
 from app.services.dtdl_loader_service import get_dtdl_loader
-from app.services.dtdl_validator_service import get_dtdl_validator, ValidationSeverity
+from app.services.dtdl_validator_service import get_dtdl_validator
 from app.services.dtdl_converter_service import get_dtdl_converter
-from app.api.deps import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +54,7 @@ async def list_interfaces(
     category: Optional[str] = Query(None, description="Filter by category (base, environmental, etc.)"),
     tags: Optional[str] = Query(None, description="Filter by tags (comma-separated, AND logic)"),
     keywords: Optional[str] = Query(None, description="Search in displayName and description"),
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     List all DTDL interfaces with optional filtering
 
@@ -84,7 +82,7 @@ async def list_interfaces(
             keywords=keywords
         )
 
-        logger.info(f"Found {len(results)} interfaces matching filters (user: {current_user.get('sub')})")
+        logger.info(f"Found {len(results)} interfaces matching filters ")
 
         return InterfaceListResponse(
             total=len(results),
@@ -96,54 +94,10 @@ async def list_interfaces(
         raise HTTPException(status_code=500, detail=f"Failed to list interfaces: {str(e)}")
 
 
-@router.get("/interfaces/{dtmi:path}", response_model=InterfaceDetailResponse)
-async def get_interface_details(
-    dtmi: str,
-    current_user: Dict = Depends(get_current_user)
-):
-    """
-    Get detailed information for a specific DTDL interface
-
-    Returns:
-    - Full DTDL interface JSON
-    - Content summary (telemetry, property, command counts)
-    - Registry metadata
-    """
-    try:
-        loader = get_dtdl_loader()
-
-        # Validate DTMI format
-        if not loader.validate_dtmi(dtmi):
-            raise HTTPException(status_code=400, detail=f"Invalid DTMI format: {dtmi}")
-
-        # Get interface details
-        interface = loader.get_interface_details(dtmi)
-
-        if not interface:
-            raise HTTPException(status_code=404, detail=f"Interface not found: {dtmi}")
-
-        logger.info(f"Retrieved interface details for {dtmi} (user: {current_user.get('sub')})")
-
-        # Extract summary if available
-        summary = interface.pop("_summary", None)
-
-        return InterfaceDetailResponse(
-            interface=interface,
-            summary=summary
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Failed to get interface details for {dtmi}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get interface details: {str(e)}")
-
-
 @router.post("/suggest", response_model=InterfaceSuggestionResponse)
 async def suggest_interfaces(
     request: InterfaceSuggestionRequest,
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Suggest DTDL interfaces based on TwinScale Thing data
 
@@ -222,7 +176,7 @@ async def suggest_interfaces(
         suggested.sort(key=lambda x: x["matchScore"], reverse=True)
 
         logger.info(f"Suggested {len(suggested)} interfaces for thing_type={request.thing_type}, "
-                   f"domain={request.domain} (user: {current_user.get('sub')})")
+                   f"domain={request.domain} ")
 
         return InterfaceSuggestionResponse(
             suggested=suggested,
@@ -236,8 +190,7 @@ async def suggest_interfaces(
 
 @router.get("/domains", response_model=Dict[str, List[str]])
 async def list_domains(
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     List all available domains with their associated DTMIs
 
@@ -252,7 +205,7 @@ async def list_domains(
 
         domain_mapping = loader._registry_cache.get("domainMapping", {})
 
-        logger.info(f"Retrieved {len(domain_mapping)} domains (user: {current_user.get('sub')})")
+        logger.info(f"Retrieved {len(domain_mapping)} domains ")
 
         return domain_mapping
 
@@ -263,8 +216,7 @@ async def list_domains(
 
 @router.get("/thing-types", response_model=Dict[str, List[str]])
 async def list_thing_types(
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     List all thing types with their associated DTMIs
 
@@ -279,7 +231,7 @@ async def list_thing_types(
 
         thing_type_mapping = loader._registry_cache.get("thingTypeMapping", {})
 
-        logger.info(f"Retrieved {len(thing_type_mapping)} thing types (user: {current_user.get('sub')})")
+        logger.info(f"Retrieved {len(thing_type_mapping)} thing types ")
 
         return thing_type_mapping
 
@@ -291,8 +243,7 @@ async def list_thing_types(
 @router.post("/validate")
 async def validate_thing(
     request: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Validate a TwinScale Thing against a DTDL interface
 
@@ -319,7 +270,7 @@ async def validate_thing(
         result = validator.validate_thing_against_interface(thing_data, dtmi, strict)
 
         logger.info(f"Validated thing against {dtmi}, score: {result.compatibility_score} "
-                   f"(user: {current_user.get('sub')})")
+                   f"")
 
         return {
             "is_compatible": result.is_compatible,
@@ -352,8 +303,7 @@ async def validate_thing(
 @router.post("/find-best-match")
 async def find_best_match(
     request: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Find best matching DTDL interfaces for a Thing
 
@@ -385,7 +335,7 @@ async def find_best_match(
         )
 
         logger.info(f"Found {len(results)} matching interfaces for thing_type={thing_type}, "
-                   f"domain={domain} (user: {current_user.get('sub')})")
+                   f"domain={domain} ")
 
         return {
             "matches": [
@@ -417,8 +367,7 @@ async def find_best_match(
 @router.get("/interfaces/{dtmi:path}/requirements")
 async def get_interface_requirements(
     dtmi: str,
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Get requirements summary for a DTDL interface
 
@@ -435,7 +384,7 @@ async def get_interface_requirements(
         if not requirements:
             raise HTTPException(status_code=404, detail=f"Interface not found: {dtmi}")
 
-        logger.info(f"Retrieved requirements for {dtmi} (user: {current_user.get('sub')})")
+        logger.info(f"Retrieved requirements for {dtmi} ")
 
         return requirements
 
@@ -449,8 +398,7 @@ async def get_interface_requirements(
 @router.post("/convert/to-twinscale")
 async def convert_to_twinscale(
     request: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Convert DTDL interface to TwinScale YAML template
 
@@ -475,7 +423,7 @@ async def convert_to_twinscale(
 
         result = converter.dtdl_to_twinscale_template(dtmi, thing_name, tenant_id)
 
-        logger.info(f"Converted {dtmi} to TwinScale template (user: {current_user.get('sub')})")
+        logger.info(f"Converted {dtmi} to TwinScale template ")
 
         return result
 
@@ -491,8 +439,7 @@ async def convert_to_twinscale(
 @router.post("/enrich")
 async def enrich_with_dtdl(
     request: Dict[str, Any],
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Enrich TwinScale Thing with DTDL metadata
 
@@ -516,7 +463,7 @@ async def enrich_with_dtdl(
 
         enriched = converter.enrich_twinscale_with_dtdl(thing_data, dtmi)
 
-        logger.info(f"Enriched Thing with {dtmi} metadata (user: {current_user.get('sub')})")
+        logger.info(f"Enriched Thing with {dtmi} metadata ")
 
         return enriched
 
@@ -532,8 +479,7 @@ async def enrich_with_dtdl(
 @router.get("/interfaces/{dtmi:path}/summary")
 async def get_interface_summary(
     dtmi: str,
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Get interface summary for UI display
 
@@ -548,7 +494,7 @@ async def get_interface_summary(
         if not summary:
             raise HTTPException(status_code=404, detail=f"Interface not found: {dtmi}")
 
-        logger.info(f"Retrieved summary for {dtmi} (user: {current_user.get('sub')})")
+        logger.info(f"Retrieved summary for {dtmi} ")
 
         return summary
 
@@ -559,10 +505,51 @@ async def get_interface_summary(
         raise HTTPException(status_code=500, detail=f"Failed to get interface summary: {str(e)}")
 
 
+@router.get("/interfaces/{dtmi:path}", response_model=InterfaceDetailResponse)
+async def get_interface_details(
+    dtmi: str,
+    ):
+    """
+    Get detailed information for a specific DTDL interface
+
+    Returns:
+    - Full DTDL interface JSON
+    - Content summary (telemetry, property, command counts)
+    - Registry metadata
+    """
+    try:
+        loader = get_dtdl_loader()
+
+        # Validate DTMI format
+        if not loader.validate_dtmi(dtmi):
+            raise HTTPException(status_code=400, detail=f"Invalid DTMI format: {dtmi}")
+
+        # Get interface details
+        interface = loader.get_interface_details(dtmi)
+
+        if not interface:
+            raise HTTPException(status_code=404, detail=f"Interface not found: {dtmi}")
+
+        logger.info(f"Retrieved interface details for {dtmi} ")
+
+        # Extract summary if available
+        summary = interface.pop("_summary", None)
+
+        return InterfaceDetailResponse(
+            interface=interface,
+            summary=summary
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get interface details for {dtmi}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get interface details: {str(e)}")
+
+
 @router.post("/reload")
 async def reload_library(
-    current_user: Dict = Depends(get_current_user)
-):
+    ):
     """
     Reload DTDL library (for development/testing)
 
@@ -573,7 +560,7 @@ async def reload_library(
         loader = get_dtdl_loader()
         loader.reload()
 
-        logger.info(f"DTDL library reloaded (user: {current_user.get('sub')})")
+        logger.info(f"DTDL library reloaded ")
 
         return {
             "status": "success",

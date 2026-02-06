@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Download, Trash2, Loader2 } from 'lucide-react'
+import { ArrowLeft, Download, Trash2, Loader2, FileCode } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import TwinScaleService from '@/services/twinscaleService'
 
 const TwinScaleThingDetails = () => {
@@ -131,6 +132,9 @@ const TwinScaleThingDetails = () => {
           <TabsTrigger value="commands">
             Commands ({interfaceData.commands?.length || 0})
           </TabsTrigger>
+          <TabsTrigger value="dtdl-binding">
+            DTDL Binding
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="properties">
@@ -211,6 +215,68 @@ const TwinScaleThingDetails = () => {
                 </div>
               ) : (
                 <p className="text-muted-foreground">No commands defined</p>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="dtdl-binding">
+          <Card>
+            <CardHeader>
+              <CardTitle>DTDL Interface Binding</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {interfaceData.annotations?.['dtdl-interface'] ? (
+                <div className="space-y-4">
+                  {/* Bound Interface Info */}
+                  <div className="border rounded-lg p-4 bg-accent/50">
+                    <h4 className="font-semibold text-lg mb-2">
+                      {interfaceData.annotations['dtdl-interface-name'] || 'Unknown Interface'}
+                    </h4>
+                    <p className="text-xs text-muted-foreground font-mono mb-3">
+                      {interfaceData.annotations['dtdl-interface']}
+                    </p>
+                    <div className="flex gap-2">
+                      <Badge variant="secondary">
+                        {interfaceData.annotations['dtdl-category'] || 'Unknown Category'}
+                      </Badge>
+                      <Badge variant="outline">
+                        {interfaceData.labels?.['thing-type'] || 'device'}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Property Mapping */}
+                  <div>
+                    <h5 className="text-sm font-semibold mb-3">Property Mapping</h5>
+                    <div className="space-y-2">
+                      {interfaceData.properties?.map((prop) => (
+                        <div key={prop.name} className="flex items-center justify-between border rounded p-3">
+                          <div>
+                            <span className="font-medium text-sm">{prop.name}</span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              ({prop.type})
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {prop.unit && (
+                              <Badge variant="outline" className="text-xs">{prop.unit}</Badge>
+                            )}
+                            <Badge variant={prop.writable ? "default" : "secondary"} className="text-xs">
+                              {prop.writable ? "Writable" : "Read-only"}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileCode className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No DTDL interface binding</p>
+                  <p className="text-xs mt-2">This Thing was created without a DTDL interface</p>
+                </div>
               )}
             </CardContent>
           </Card>

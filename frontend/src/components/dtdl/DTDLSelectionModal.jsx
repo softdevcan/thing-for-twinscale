@@ -118,9 +118,10 @@ const DTDLSelectionModal = ({ isOpen, onClose, onSelect, thingType = null, domai
 
   // Extract unique categories and domains
   const categories = ['all', ...new Set(interfaces.map((i) => i.category).filter(Boolean))]
+  // Use category as domain (more reliable than tags)
   const domains = [
     'all',
-    ...new Set(interfaces.flatMap((i) => i.tags || []).filter((tag) => tag.includes('_') || tag === 'environmental' || tag === 'air-quality'))
+    ...new Set(interfaces.map((i) => i.category).filter((cat) => cat && cat !== 'base'))
   ]
 
   if (!isOpen) return null
@@ -304,31 +305,58 @@ const DTDLSelectionModal = ({ isOpen, onClose, onSelect, thingType = null, domai
                       </div>
                     </div>
 
-                    {/* Telemetry List */}
-                    {interfaceSummary.telemetryNames?.length > 0 && (
+                    {/* Telemetry Details */}
+                    {interfaceSummary.telemetryDetails?.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('dtdl.telemetryFields')}</h4>
-                        <ul className="space-y-1">
-                          {interfaceSummary.telemetryNames.map((name) => (
-                            <li key={name} className="text-sm text-gray-700 bg-white px-3 py-2 rounded border">
-                              <code className="text-blue-600">{name}</code>
-                            </li>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Telemetry Details</h4>
+                        <div className="space-y-2">
+                          {interfaceSummary.telemetryDetails.map((tel) => (
+                            <div key={tel.name} className="bg-white p-3 rounded border">
+                              <div className="flex items-start justify-between mb-1">
+                                <div>
+                                  <code className="text-sm font-medium text-blue-600">{tel.name}</code>
+                                  <span className="text-xs text-gray-500 ml-2">({tel.type})</span>
+                                </div>
+                              </div>
+                              {tel.description && (
+                                <p className="text-xs text-gray-600 mb-1">{tel.description}</p>
+                              )}
+                              {tel.unit && (
+                                <span className="text-xs text-gray-500">Unit: {tel.unit}</span>
+                              )}
+                            </div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
 
-                    {/* Property List */}
-                    {interfaceSummary.propertyNames?.length > 0 && (
+                    {/* Property Details */}
+                    {interfaceSummary.propertyDetails?.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-semibold text-gray-900 mb-2">{t('dtdl.propertyFields')}</h4>
-                        <ul className="space-y-1">
-                          {interfaceSummary.propertyNames.map((name) => (
-                            <li key={name} className="text-sm text-gray-700 bg-white px-3 py-2 rounded border">
-                              <code className="text-green-600">{name}</code>
-                            </li>
+                        <h4 className="text-sm font-semibold text-gray-900 mb-3">Property Details</h4>
+                        <div className="space-y-2">
+                          {interfaceSummary.propertyDetails.map((prop) => (
+                            <div key={prop.name} className="bg-white p-3 rounded border">
+                              <div className="flex items-start justify-between mb-1">
+                                <div>
+                                  <code className="text-sm font-medium text-green-600">{prop.name}</code>
+                                  <span className="text-xs text-gray-500 ml-2">({prop.type})</span>
+                                </div>
+                                {prop.writable !== undefined && (
+                                  <span className={`text-xs px-2 py-0.5 rounded ${prop.writable ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                                    {prop.writable ? "Writable" : "Read-only"}
+                                  </span>
+                                )}
+                              </div>
+                              {prop.description && (
+                                <p className="text-xs text-gray-600 mb-1">{prop.description}</p>
+                              )}
+                              {prop.unit && (
+                                <span className="text-xs text-gray-500">Unit: {prop.unit}</span>
+                              )}
+                            </div>
                           ))}
-                        </ul>
+                        </div>
                       </div>
                     )}
 
