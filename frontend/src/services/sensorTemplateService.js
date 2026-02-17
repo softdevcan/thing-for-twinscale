@@ -39,17 +39,17 @@ export class SensorTemplateService {
   }
   
   /**
-   * Generate default sensors for a kozalak
+   * Generate default sensors for a node
    */
-  static async generateDefaultSensors(kozalakId, kozalakType = 'merkez') {
+  static async generateDefaultSensors(nodeId, nodeType = 'primary') {
     try {
       const service = new SensorTemplateService();
       const response = await axiosInstance.post(
-        `${service.baseURL}/generate-default-sensors/${kozalakId}?kozalak_type=${kozalakType}`
+        `${service.baseURL}/generate-default-sensors/${nodeId}?node_type=${nodeType}`
       );
       return response.data;
     } catch (error) {
-      console.error(`Error generating default sensors for ${kozalakId}:`, error);
+      console.error(`Error generating default sensors for ${nodeId}:`, error);
       throw error;
     }
   }
@@ -106,9 +106,9 @@ export class SensorTemplateService {
   /**
    * Create sensor instance configuration
    */
-  static createSensorInstance(kozalakId, template, customName = null, metadata = {}) {
+  static createSensorInstance(nodeId, template, customName = null, metadata = {}) {
     const instanceName = customName || template.title;
-    const instanceId = `${kozalakId}-${template.value}`;
+    const instanceId = `${nodeId}-${template.value}`;
     
     return {
       "@id": instanceId,

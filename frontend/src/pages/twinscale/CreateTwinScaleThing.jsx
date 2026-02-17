@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import Editor from '@monaco-editor/react'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, Loader2, Check, Trash2, MapPin, Building2, Layers, Info, FileCode } from 'lucide-react'
+import { Plus, Loader2, Check, Trash2, MapPin, Building2, Layers, Info, FileCode, Wand2 } from 'lucide-react'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
@@ -38,8 +38,11 @@ const CreateTwinScaleThing = () => {
     commands: [],
     include_service_spec: true,
     store_in_rdf: true,
-    latitude: 39.9334, // Default Ankara
-    longitude: 32.8597,
+    // Location Information
+    latitude: null,
+    longitude: null,
+    address: '', // Physical address
+    altitude: null, // Altitude/elevation in meters
     // NEW: Thing Type
     thing_type: 'device', // 'device', 'sensor', 'component'
     // NEW: Domain Metadata
@@ -98,6 +101,8 @@ const CreateTwinScaleThing = () => {
 
       // Build annotations section
       const annotationsSection = []
+
+      // Domain metadata
       if (formData.manufacturer) {
         annotationsSection.push(`    manufacturer: "${formData.manufacturer}"`)
       }
@@ -111,13 +116,29 @@ const CreateTwinScaleThing = () => {
         annotationsSection.push(`    firmwareVersion: "${formData.firmware_version}"`)
       }
 
+      // Location metadata
+      if (formData.latitude != null && formData.latitude !== '') {
+        annotationsSection.push(`    latitude: "${formData.latitude}"`)
+      }
+      if (formData.longitude != null && formData.longitude !== '') {
+        annotationsSection.push(`    longitude: "${formData.longitude}"`)
+      }
+      if (formData.address && formData.address.trim() !== '') {
+        annotationsSection.push(`    address: "${formData.address}"`)
+      }
+      if (formData.altitude != null && formData.altitude !== '') {
+        annotationsSection.push(`    altitude: "${formData.altitude}"`)
+      }
+
       // Simple YAML preview generation
       const interfacePreview = `apiVersion: dtd.twinscale/v0
 kind: TwinInterface
 metadata:
   name: ems-iodt2-${normalizedId}
   labels:
-${labelsSection.join('\n')}${annotationsSection.length > 0 ? `\n  annotations:\n${annotationsSection.join('\n')}` : ''}
+${labelsSection.join('\n')}${annotationsSection.length > 0 ? `
+  annotations:
+${annotationsSection.join('\n')}` : ''}
 spec:
   name: ems-iodt2-${normalizedId}
   properties:
@@ -328,13 +349,39 @@ spec:
     setFormData({ ...formData, commands: newCommands })
   }
 
-  const handleMapClick = (event) => {
+  const handleMapClick = async (event) => {
     const { lngLat } = event
+
+    // Set coordinates immediately
     setFormData({
       ...formData,
       latitude: lngLat.lat,
       longitude: lngLat.lng
     })
+
+    // Fetch address and altitude from location service
+    try {
+      const locationInfo = await TwinScaleService.getLocationInfo(lngLat.lat, lngLat.lng)
+
+      if (locationInfo) {
+        setFormData(prevData => ({
+          ...prevData,
+          latitude: lngLat.lat,
+          longitude: lngLat.lng,
+          address: locationInfo.address || prevData.address,
+          altitude: locationInfo.altitude != null ? locationInfo.altitude : prevData.altitude
+        }))
+
+        // Show success toast
+        toast({
+          title: t('common.success'),
+          description: `Location updated: ${locationInfo.address || 'Address not found'}`,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to fetch location info:', error)
+      // Location already set with coordinates, so no error toast needed
+    }
   }
 
   return (
@@ -396,66 +443,66 @@ spec:
           <RadioGroup
             value={formData.thing_type}
             onValueChange={(value) => setFormData({ ...formData, thing_type: value })}
-            className="space-y-3"
+            className="grid grid-cols-3 gap-4"
           >
             {/* Device Option */}
-            <div className="flex items-start space-x-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer">
-              <RadioGroupItem value="device" id="device" className="mt-1" />
-              <Label htmlFor="device" className="flex-1 cursor-pointer">
-                <div className="font-semibold text-base mb-1">
+            <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="device" id="device" />
+                <Label htmlFor="device" className="cursor-pointer font-semibold text-base">
                   📦 {t('createThing.typeDevice')}
+                </Label>
+              </div>
+              <div className="text-sm text-muted-foreground space-y-1 flex-1">
+                <p>{t('createThing.typeDeviceDesc')}</p>
+                <p className="text-xs italic">
+                  <strong>Example:</strong> Weather station with temperature, humidity, pressure sensors
+                </p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <Badge variant="secondary" className="text-xs">DTDL: Multiple Telemetry</Badge>
+                  <Badge variant="secondary" className="text-xs">Ditto: Multiple Features</Badge>
                 </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>{t('createThing.typeDeviceDesc')}</p>
-                  <p className="text-xs italic">
-                    <strong>Example:</strong> Weather station with temperature, humidity, pressure sensors
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-xs">DTDL: Multiple Telemetry</Badge>
-                    <Badge variant="secondary" className="text-xs">Ditto: Multiple Features</Badge>
-                  </div>
-                </div>
-              </Label>
+              </div>
             </div>
 
             {/* Sensor Option */}
-            <div className="flex items-start space-x-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer">
-              <RadioGroupItem value="sensor" id="sensor" className="mt-1" />
-              <Label htmlFor="sensor" className="flex-1 cursor-pointer">
-                <div className="font-semibold text-base mb-1">
+            <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sensor" id="sensor" />
+                <Label htmlFor="sensor" className="cursor-pointer font-semibold text-base">
                   🌡️ {t('createThing.typeSensor')}
+                </Label>
+              </div>
+              <div className="text-sm text-muted-foreground space-y-1 flex-1">
+                <p>{t('createThing.typeSensorDesc')}</p>
+                <p className="text-xs italic">
+                  <strong>Example:</strong> Single DHT22 temperature sensor
+                </p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <Badge variant="secondary" className="text-xs">DTDL: Simple Interface</Badge>
+                  <Badge variant="secondary" className="text-xs">Ditto: Single Feature</Badge>
                 </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>{t('createThing.typeSensorDesc')}</p>
-                  <p className="text-xs italic">
-                    <strong>Example:</strong> Single DHT22 temperature sensor
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-xs">DTDL: Simple Interface</Badge>
-                    <Badge variant="secondary" className="text-xs">Ditto: Single Feature</Badge>
-                  </div>
-                </div>
-              </Label>
+              </div>
             </div>
 
             {/* Component Option */}
-            <div className="flex items-start space-x-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer">
-              <RadioGroupItem value="component" id="component" className="mt-1" />
-              <Label htmlFor="component" className="flex-1 cursor-pointer">
-                <div className="font-semibold text-base mb-1">
+            <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="component" id="component" />
+                <Label htmlFor="component" className="cursor-pointer font-semibold text-base">
                   🏗️ {t('createThing.typeComponent')}
+                </Label>
+              </div>
+              <div className="text-sm text-muted-foreground space-y-1 flex-1">
+                <p>{t('createThing.typeComponentDesc')}</p>
+                <p className="text-xs italic">
+                  <strong>Example:</strong> Building floor with multiple child sensors
+                </p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <Badge variant="secondary" className="text-xs">DTDL: Components (Ideal!)</Badge>
+                  <Badge variant="secondary" className="text-xs">Uses Relationships</Badge>
                 </div>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>{t('createThing.typeComponentDesc')}</p>
-                  <p className="text-xs italic">
-                    <strong>Example:</strong> Building floor with multiple child sensors
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Badge variant="secondary" className="text-xs">DTDL: Components (Ideal!)</Badge>
-                    <Badge variant="secondary" className="text-xs">Uses Relationships</Badge>
-                  </div>
-                </div>
-              </Label>
+              </div>
             </div>
           </RadioGroup>
 
@@ -561,11 +608,12 @@ spec:
                   </Button>
                   <Button
                     onClick={handleAutoFillFromDTDL}
-                    variant="secondary"
+                    variant="default"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
                     disabled={!formData.dtdl_interface_summary?.propertyNames?.length}
                   >
+                    <Wand2 className="mr-2 h-4 w-4" />
                     {t('dtdl.autoFill')}
                   </Button>
                 </div>
@@ -831,34 +879,74 @@ spec:
                     center={{ lat: formData.latitude || 39.9334, lng: formData.longitude || 32.8597 }}
                     zoom={15}
                     onMapClick={handleMapClick}
-                    sensors={[{
+                    sensors={formData.latitude != null && formData.longitude != null ? [{
                       id: 'new-location',
-                      latitude: formData.latitude || 39.9334,
-                      longitude: formData.longitude || 32.8597,
-                      type: 'side_kozalak',
+                      latitude: formData.latitude,
+                      longitude: formData.longitude,
+                      type: 'secondary',
                       status: 'online',
                       name: t('createThing.selectedLocation')
-                    }]}
+                    }] : []}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('createThing.latitude')}</label>
-                    <Input
-                      type="number"
-                      step="any"
-                      value={formData.latitude}
-                      onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) })}
-                    />
+                <div className="space-y-4">
+                  {/* Coordinates */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t('createThing.latitude')}
+                        <span className="text-muted-foreground ml-1">({t('common.optional')})</span>
+                      </label>
+                      <Input
+                        type="number"
+                        step="any"
+                        placeholder="e.g., 39.9334"
+                        value={formData.latitude || ''}
+                        onChange={(e) => setFormData({ ...formData, latitude: e.target.value ? parseFloat(e.target.value) : null })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t('createThing.longitude')}
+                        <span className="text-muted-foreground ml-1">({t('common.optional')})</span>
+                      </label>
+                      <Input
+                        type="number"
+                        step="any"
+                        placeholder="e.g., 32.8597"
+                        value={formData.longitude || ''}
+                        onChange={(e) => setFormData({ ...formData, longitude: e.target.value ? parseFloat(e.target.value) : null })}
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">{t('createThing.longitude')}</label>
-                    <Input
-                      type="number"
-                      step="any"
-                      value={formData.longitude}
-                      onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) })}
-                    />
+
+                  {/* Address and Altitude */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t('createThing.address')}
+                        <span className="text-muted-foreground ml-1">({t('common.optional')})</span>
+                      </label>
+                      <Input
+                        type="text"
+                        placeholder={t('createThing.addressPlaceholder')}
+                        value={formData.address || ''}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">
+                        {t('createThing.altitude')}
+                        <span className="text-muted-foreground ml-1">({t('common.optional')})</span>
+                      </label>
+                      <Input
+                        type="number"
+                        step="any"
+                        placeholder={t('createThing.altitudePlaceholder')}
+                        value={formData.altitude || ''}
+                        onChange={(e) => setFormData({ ...formData, altitude: e.target.value ? parseFloat(e.target.value) : null })}
+                      />
+                    </div>
                   </div>
                 </div>
               </TabsContent>

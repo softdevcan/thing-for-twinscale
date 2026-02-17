@@ -26,10 +26,30 @@ const DTDLValidationPanel = ({ formData, dtdlInterface }) => {
     const timer = setTimeout(async () => {
       setLoading(true)
       try {
+        // Convert properties array to dictionary format expected by backend
+        const propertiesDict = {}
+        const telemetryDict = {}
+
+        formData.properties.forEach(prop => {
+          // Assume properties with writable=false are telemetry
+          if (prop.writable === false && ['float', 'integer', 'double'].includes(prop.type)) {
+            telemetryDict[prop.name] = {
+              type: prop.type,
+              description: prop.description
+            }
+          } else {
+            propertiesDict[prop.name] = {
+              type: prop.type,
+              writable: prop.writable,
+              description: prop.description
+            }
+          }
+        })
+
         const result = await validateThing({
           thing_data: {
-            properties: formData.properties,
-            commands: formData.commands
+            properties: propertiesDict,
+            telemetry: telemetryDict
           },
           dtmi: dtdlInterface.dtmi,
           strict: false
@@ -37,6 +57,8 @@ const DTDLValidationPanel = ({ formData, dtdlInterface }) => {
         setValidationResult(result)
       } catch (error) {
         console.error('Validation failed:', error)
+        // Set null result to hide validation panel on error
+        setValidationResult(null)
       } finally {
         setLoading(false)
       }

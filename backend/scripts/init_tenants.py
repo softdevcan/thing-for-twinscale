@@ -50,13 +50,6 @@ def create_default_tenants():
                 "description": "IoT Department 2 tenant",
                 "is_active": True,
                 "max_things": 5000
-            },
-            {
-                "tenant_id": "kozalak",
-                "name": "Kozalak Project",
-                "description": "Kozalak IoT sensors project",
-                "is_active": True,
-                "max_things": 1000
             }
         ]
 

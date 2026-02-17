@@ -12,6 +12,7 @@ import zipfile
 
 from app.services.twinscale_generator_service import TwinScaleGeneratorService
 from app.services.twinscale_rdf_service import TwinScaleRDFService
+from app.services.location_service import LocationService
 from app.models.twinscale_models import ValidationResult
 from app.api.dependencies import get_tenant_id
 from pydantic import BaseModel
@@ -91,6 +92,8 @@ class TwinScaleCreateRequest(BaseModel):
     # Location (Optional)
     latitude: Optional[float] = None
     longitude: Optional[float] = None
+    address: Optional[str] = None
+    altitude: Optional[float] = None
 
     # Commands/Actions
     commands: List[TwinScaleCommandInput] = []
@@ -170,6 +173,8 @@ async def create_twinscale_thing(
             "description": request.description,
             "latitude": request.latitude,
             "longitude": request.longitude,
+            "address": request.address,
+            "altitude": request.altitude,
             "properties": {},
             "actions": {},
             "links": []
@@ -592,6 +597,34 @@ async def delete_twinscale_interface(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete interface: {str(e)}"
+        )
+
+
+@router.get(
+    "/location",
+    summary="Get location info from coordinates",
+    description="Reverse geocoding and elevation lookup for coordinates",
+)
+async def get_location_info(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude"),
+):
+    """
+    Get location information (address + altitude) for given coordinates.
+
+    Uses:
+    - Nominatim (OpenStreetMap) for reverse geocoding
+    - Open-Elevation API for altitude data
+    """
+    try:
+        location_service = LocationService()
+        result = await location_service.get_location_info(lat, lon)
+        return result
+    except Exception as e:
+        logger.error(f"Error getting location info: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get location info: {str(e)}"
         )
 
 

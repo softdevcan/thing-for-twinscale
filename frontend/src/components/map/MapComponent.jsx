@@ -51,21 +51,21 @@ const MapComponent = ({
   
   // Marker configuration - fallback defaults if not provided from dashboard config
   markerConfig = {
-    main_kozalak: {
+    primary: {
       active_color: "#10b981",
       inactive_color: "#374151",
-      warning_color: "#f59e0b", 
+      warning_color: "#f59e0b",
       error_color: "#ef4444",
       size: 36,
       border_width: 4,
       icon: "tower",
       glow_effect: true
     },
-    side_kozalak: {
+    secondary: {
       active_color: "#3b82f6",
       inactive_color: "#4b5563",
       warning_color: "#f97316",
-      error_color: "#dc2626", 
+      error_color: "#dc2626",
       size: 28,
       border_width: 3,
       icon: "sensor",
@@ -243,11 +243,11 @@ const MapComponent = ({
    * Get marker icon based on sensor type
    */
   const getMarkerIcon = (sensor) => {
-    const sensorType = sensor.type || 'side_kozalak'
-    const config = markerConfig[sensorType] || markerConfig.side_kozalak
+    const sensorType = sensor.type || 'secondary'
+    const config = markerConfig[sensorType] || markerConfig.secondary
     const iconSize = config.size > 30 ? "w-8 h-8" : "w-6 h-6"
-    
-    if (sensorType === 'main_kozalak') {
+
+    if (sensorType === 'primary') {
       return <Activity className={iconSize} />
     }
     return <MapPin className={iconSize} />
@@ -257,8 +257,8 @@ const MapComponent = ({
    * Get marker color based on sensor status
    */
   const getMarkerColor = (sensor) => {
-    const sensorType = sensor.type || 'side_kozalak'
-    const config = markerConfig[sensorType] || markerConfig.side_kozalak
+    const sensorType = sensor.type || 'secondary'
+    const config = markerConfig[sensorType] || markerConfig.secondary
     
     // Use sensor status directly (online/offline)
     const status = sensor.status || 'offline'
@@ -280,8 +280,8 @@ const MapComponent = ({
    * Get marker size based on sensor type
    */
   const getMarkerSize = (sensor) => {
-    const sensorType = sensor.type || 'side_kozalak'
-    const config = markerConfig[sensorType] || markerConfig.side_kozalak
+    const sensorType = sensor.type || 'secondary'
+    const config = markerConfig[sensorType] || markerConfig.secondary
     return config.size
   }
 
@@ -289,8 +289,8 @@ const MapComponent = ({
    * Get marker border width based on sensor type
    */
   const getMarkerBorderWidth = (sensor) => {
-    const sensorType = sensor.type || 'side_kozalak'
-    const config = markerConfig[sensorType] || markerConfig.side_kozalak
+    const sensorType = sensor.type || 'secondary'
+    const config = markerConfig[sensorType] || markerConfig.secondary
     return config.border_width
   }
 
@@ -298,8 +298,8 @@ const MapComponent = ({
    * Check if marker should have glow effect
    */
   const getMarkerGlowEffect = (sensor) => {
-    const sensorType = sensor.type || 'side_kozalak'
-    const config = markerConfig[sensorType] || markerConfig.side_kozalak
+    const sensorType = sensor.type || 'secondary'
+    const config = markerConfig[sensorType] || markerConfig.secondary
     return config.glow_effect
   }
 
@@ -703,7 +703,7 @@ MapComponent.propTypes = {
   
   // Marker configuration
   markerConfig: PropTypes.shape({
-    main_kozalak: PropTypes.shape({
+    primary: PropTypes.shape({
       active_color: PropTypes.string,
       inactive_color: PropTypes.string,
       warning_color: PropTypes.string,
@@ -713,7 +713,7 @@ MapComponent.propTypes = {
       icon: PropTypes.string,
       glow_effect: PropTypes.bool
     }),
-    side_kozalak: PropTypes.shape({
+    secondary: PropTypes.shape({
       active_color: PropTypes.string,
       inactive_color: PropTypes.string,
       warning_color: PropTypes.string,

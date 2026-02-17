@@ -187,6 +187,26 @@ const validateYaml = async (yamlContent, kind) => {
   }
 };
 
+/**
+ * Get location information (address + altitude) from coordinates
+ * @param {number} latitude - Latitude coordinate
+ * @param {number} longitude - Longitude coordinate
+ * @returns {Promise<Object>} Location info with address and altitude
+ */
+const getLocationInfo = async (latitude, longitude) => {
+  try {
+    const response = await axiosInstance.get("/v2/twinscale/location", {
+      params: { lat: latitude, lon: longitude },
+      headers: getTenantHeaders(),
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching location info:", error);
+    // Don't throw, just return null so the app continues working
+    return null;
+  }
+};
+
 const TwinScaleService = {
   // Creation
   createTwinScaleThing,
@@ -209,6 +229,9 @@ const TwinScaleService = {
 
   // Validation
   validateYaml,
+
+  // Location
+  getLocationInfo,
 };
 
 export default TwinScaleService;

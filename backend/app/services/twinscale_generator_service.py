@@ -119,6 +119,18 @@ class TwinScaleGeneratorService:
                 annotations["model"] = domain_metadata["model"]
             if domain_metadata.get("serial_number"):
                 annotations["serialNumber"] = domain_metadata["serial_number"]
+            if domain_metadata.get("firmware_version"):
+                annotations["firmwareVersion"] = domain_metadata["firmware_version"]
+
+        # Add location metadata to annotations if provided
+        if thing_description.get("latitude") is not None:
+            annotations["latitude"] = str(thing_description["latitude"])
+        if thing_description.get("longitude") is not None:
+            annotations["longitude"] = str(thing_description["longitude"])
+        if thing_description.get("address"):
+            annotations["address"] = thing_description["address"]
+        if thing_description.get("altitude") is not None:
+            annotations["altitude"] = str(thing_description["altitude"])
 
         # Add DTDL interface metadata if provided
         if dtdl_interface:
@@ -126,8 +138,6 @@ class TwinScaleGeneratorService:
             annotations["dtdl-interface-name"] = dtdl_interface.get("displayName", "")
             if dtdl_interface.get("category"):
                 annotations["dtdl-category"] = dtdl_interface["category"]
-            if domain_metadata.get("firmware_version"):
-                annotations["firmwareVersion"] = domain_metadata["firmware_version"]
 
         # Build TwinInterface CR
         interface_cr = TwinInterfaceCR(
