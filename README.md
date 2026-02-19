@@ -7,7 +7,7 @@ A DTDL (Digital Twins Definition Language) based digital twin management system.
 ```bash
 # 1. Clone the project
 git clone <repository-url>
-cd thing-for-twinscale
+cd thing-for-iodt2
 
 # 2. Start with Docker (Recommended)
 docker-compose up -d
@@ -248,13 +248,13 @@ curl http://localhost:3015/api/v2/dtdl/interfaces
 ```json
 [
   {
-    "dtmi": "dtmi:twinscale:BaseTwin;1",
+    "dtmi": "dtmi:iodt2:BaseTwin;1",
     "displayName": "Base Digital Twin",
     "description": "Base interface for all digital twins",
     "category": "base"
   },
   {
-    "dtmi": "dtmi:twinscale:SensorTwin;1",
+    "dtmi": "dtmi:iodt2:SensorTwin;1",
     "displayName": "Sensor Twin",
     "description": "Base interface for sensor digital twins",
     "category": "base"
@@ -267,7 +267,7 @@ curl http://localhost:3015/api/v2/dtdl/interfaces
 **Endpoint:** `GET /api/v2/dtdl/interfaces/{dtmi}`
 
 ```bash
-curl "http://localhost:3015/api/v2/dtdl/interfaces/dtmi:twinscale:environmental:TemperatureSensor;1"
+curl "http://localhost:3015/api/v2/dtdl/interfaces/dtmi:iodt2:environmental:TemperatureSensor;1"
 ```
 
 ### 3. Get Interface Requirements
@@ -275,7 +275,7 @@ curl "http://localhost:3015/api/v2/dtdl/interfaces/dtmi:twinscale:environmental:
 **Endpoint:** `GET /api/v2/dtdl/interfaces/{dtmi}/requirements`
 
 ```bash
-curl "http://localhost:3015/api/v2/dtdl/interfaces/dtmi:twinscale:environmental:TemperatureSensor;1/requirements"
+curl "http://localhost:3015/api/v2/dtdl/interfaces/dtmi:iodt2:environmental:TemperatureSensor;1/requirements"
 ```
 
 **Response:**
@@ -295,19 +295,19 @@ curl "http://localhost:3015/api/v2/dtdl/interfaces/dtmi:twinscale:environmental:
     }
   ],
   "requiredCommands": [],
-  "inheritedFrom": ["dtmi:twinscale:SensorTwin;1"]
+  "inheritedFrom": ["dtmi:iodt2:SensorTwin;1"]
 }
 ```
 
 ### 4. Generate YAML Template from DTDL
 
-**Endpoint:** `POST /api/v2/dtdl/convert/to-twinscale`
+**Endpoint:** `POST /api/v2/dtdl/convert/to-iodt2`
 
 ```bash
-curl -X POST "http://localhost:3015/api/v2/dtdl/convert/to-twinscale" \
+curl -X POST "http://localhost:3015/api/v2/dtdl/convert/to-iodt2" \
   -H "Content-Type: application/json" \
   -d '{
-    "dtmi": "dtmi:twinscale:environmental:TemperatureSensor;1",
+    "dtmi": "dtmi:iodt2:environmental:TemperatureSensor;1",
     "thing_name": "OfficeTemperatureSensor",
     "tenant_id": "my-tenant"
   }'
@@ -334,7 +334,7 @@ thing:
     location: "Office Room 101"
   metadata:
     dtdl:
-      dtmi: dtmi:twinscale:environmental:TemperatureSensor;1
+      dtmi: dtmi:iodt2:environmental:TemperatureSensor;1
     created_by: user@example.com
 ```
 
@@ -414,24 +414,24 @@ curl "http://localhost:3015/api/v2/twin/things/search?query=properties.location&
 ### Available Interfaces
 
 #### Base Interfaces
-- **BaseTwin** (`dtmi:twinscale:BaseTwin;1`) - Base interface for all digital twins
-- **SensorTwin** (`dtmi:twinscale:SensorTwin;1`) - Base interface for sensors
-- **ActuatorTwin** (`dtmi:twinscale:ActuatorTwin;1`) - Base interface for actuators
-- **GatewayTwin** (`dtmi:twinscale:GatewayTwin;1`) - Base interface for gateways
+- **BaseTwin** (`dtmi:iodt2:BaseTwin;1`) - Base interface for all digital twins
+- **SensorTwin** (`dtmi:iodt2:SensorTwin;1`) - Base interface for sensors
+- **ActuatorTwin** (`dtmi:iodt2:ActuatorTwin;1`) - Base interface for actuators
+- **GatewayTwin** (`dtmi:iodt2:GatewayTwin;1`) - Base interface for gateways
 
 #### Environmental Sensors
-- **TemperatureSensor** (`dtmi:twinscale:environmental:TemperatureSensor;1`)
-- **HumiditySensor** (`dtmi:twinscale:environmental:HumiditySensor;1`)
-- **WeatherStation** (`dtmi:twinscale:environmental:WeatherStation;1`)
+- **TemperatureSensor** (`dtmi:iodt2:environmental:TemperatureSensor;1`)
+- **HumiditySensor** (`dtmi:iodt2:environmental:HumiditySensor;1`)
+- **WeatherStation** (`dtmi:iodt2:environmental:WeatherStation;1`)
 
 #### Air Quality Sensors
-- **PM25Sensor** (`dtmi:twinscale:air_quality:PM25Sensor;1`)
+- **PM25Sensor** (`dtmi:iodt2:air_quality:PM25Sensor;1`)
 
 #### Seismic Sensors
-- **Building** (`dtmi:twinscale:seismic:Building;1`)
-- **Street** (`dtmi:twinscale:seismic:Street;1`)
-- **BaseStation** (`dtmi:twinscale:seismic:BaseStation;1`)
-- **SeismicSensor** (`dtmi:twinscale:seismic:SeismicSensor;1`)
+- **Building** (`dtmi:iodt2:seismic:Building;1`)
+- **Street** (`dtmi:iodt2:seismic:Street;1`)
+- **BaseStation** (`dtmi:iodt2:seismic:BaseStation;1`)
+- **SeismicSensor** (`dtmi:iodt2:seismic:SeismicSensor;1`)
 
 ### Adding a New DTDL Interface
 
@@ -440,11 +440,11 @@ curl "http://localhost:3015/api/v2/twin/things/search?query=properties.location&
 ```json
 {
   "@context": "dtmi:dtdl:context;3",
-  "@id": "dtmi:twinscale:domain:MySensor;1",
+  "@id": "dtmi:iodt2:domain:MySensor;1",
   "@type": "Interface",
   "displayName": "My Custom Sensor",
   "description": "Description of my sensor",
-  "extends": "dtmi:twinscale:SensorTwin;1",
+  "extends": "dtmi:iodt2:SensorTwin;1",
   "contents": [
     {
       "@type": "Property",
@@ -464,7 +464,7 @@ backend/app/dtdl_library/domain/my_domain/MySensor.json
 3. **Update `registry.json`:**
 ```json
 {
-  "dtmi": "dtmi:twinscale:domain:MySensor;1",
+  "dtmi": "dtmi:iodt2:domain:MySensor;1",
   "displayName": "My Custom Sensor",
   "description": "Description of my sensor",
   "filePath": "domain/my_domain/MySensor.json",
@@ -596,7 +596,7 @@ CORS_ORIGINS=http://localhost,http://localhost:3005,http://localhost:5173
 ## Project Structure
 
 ```
-thing-for-twinscale/
+thing-for-iodt2/
 ├── backend/                      # Python/FastAPI backend
 │   ├── app/
 │   │   ├── api/v2/              # API endpoints
