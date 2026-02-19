@@ -1,7 +1,8 @@
 """
 Setup Twin Fuseki Database
 
-This script creates the twin-db dataset in Fuseki and loads the Twin ontology.
+This script creates the Fuseki dataset and loads the Twin ontology.
+Dataset name is read from FUSEKI_DATASET setting.
 
 Usage:
     python scripts/setup_twin_fuseki.py
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-def create_dataset(dataset_name: str = "twin-db") -> bool:
+def create_dataset(dataset_name: str = None) -> bool:
     """
     Create a new TDB2 dataset in Fuseki
 
@@ -34,6 +35,7 @@ def create_dataset(dataset_name: str = "twin-db") -> bool:
     Returns:
         bool: True if successful or already exists
     """
+    dataset_name = dataset_name or settings.FUSEKI_DATASET
     try:
         fuseki_url = settings.FUSEKI_URL
         auth = (settings.FUSEKI_USERNAME, settings.FUSEKI_PASSWORD)
@@ -77,7 +79,7 @@ def create_dataset(dataset_name: str = "twin-db") -> bool:
         return False
 
 
-def load_ontology(dataset_name: str = "twin-db") -> bool:
+def load_ontology(dataset_name: str = None) -> bool:
     """
     Load Twin ontology into the dataset
 
@@ -87,6 +89,7 @@ def load_ontology(dataset_name: str = "twin-db") -> bool:
     Returns:
         bool: True if successful
     """
+    dataset_name = dataset_name or settings.FUSEKI_DATASET
     try:
         logger.info("Loading Twin ontology...")
 
@@ -122,7 +125,7 @@ def load_ontology(dataset_name: str = "twin-db") -> bool:
         return False
 
 
-def verify_setup(dataset_name: str = "twin-db") -> bool:
+def verify_setup(dataset_name: str = None) -> bool:
     """
     Verify the setup by running a test query
 
@@ -132,6 +135,7 @@ def verify_setup(dataset_name: str = "twin-db") -> bool:
     Returns:
         bool: True if verification successful
     """
+    dataset_name = dataset_name or settings.FUSEKI_DATASET
     try:
         logger.info("Verifying setup...")
 
@@ -176,7 +180,7 @@ def main():
     logger.info("Twin Fuseki Database Setup")
     logger.info("=" * 60)
     logger.info(f"Fuseki URL: {settings.FUSEKI_URL}")
-    logger.info(f"Dataset: twin-db")
+    logger.info(f"Dataset: {settings.FUSEKI_DATASET}")
     logger.info("=" * 60)
 
     # Step 1: Create dataset
@@ -197,9 +201,9 @@ def main():
     logger.info("=" * 60)
     logger.info("✓ Twin Fuseki setup completed successfully!")
     logger.info("=" * 60)
-    logger.info(f"Query endpoint: {settings.FUSEKI_URL}/twin-db/query")
-    logger.info(f"Update endpoint: {settings.FUSEKI_URL}/twin-db/update")
-    logger.info(f"Data endpoint: {settings.FUSEKI_URL}/twin-db/data")
+    logger.info(f"Query endpoint: {settings.FUSEKI_URL}/{settings.FUSEKI_DATASET}/query")
+    logger.info(f"Update endpoint: {settings.FUSEKI_URL}/{settings.FUSEKI_DATASET}/update")
+    logger.info(f"Data endpoint: {settings.FUSEKI_URL}/{settings.FUSEKI_DATASET}/data")
     logger.info("=" * 60)
 
 

@@ -23,6 +23,57 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
+async def ensure_fuseki_dataset():
+    """Check if Fuseki dataset exists, create it and load ontology if not."""
+    import httpx
+    from app.core.twin_ontology import get_twin_ontology
+
+    dataset = settings.FUSEKI_DATASET
+    fuseki_url = settings.FUSEKI_URL
+    auth = (settings.FUSEKI_USERNAME, settings.FUSEKI_PASSWORD)
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            # Check if dataset exists
+            resp = await client.get(f"{fuseki_url}/$/datasets", auth=auth)
+            if resp.status_code == 200:
+                existing = [ds.get("ds.name", "").strip("/") for ds in resp.json().get("datasets", [])]
+                if dataset in existing:
+                    logger.info(f"Fuseki dataset '{dataset}' already exists")
+                    return
+
+            # Create dataset
+            logger.info(f"Creating Fuseki dataset '{dataset}'...")
+            resp = await client.post(
+                f"{fuseki_url}/$/datasets",
+                data={"dbName": dataset, "dbType": "tdb2"},
+                auth=auth,
+            )
+            if resp.status_code not in [200, 201]:
+                logger.error(f"Failed to create dataset: {resp.status_code} - {resp.text}")
+                return
+            logger.info(f"Fuseki dataset '{dataset}' created")
+
+            # Load ontology
+            logger.info("Loading Twin ontology into Fuseki...")
+            ontology = get_twin_ontology()
+            turtle_data = ontology.serialize(format="turtle")
+            resp = await client.post(
+                f"{fuseki_url}/{dataset}/data",
+                content=turtle_data,
+                headers={"Content-Type": "text/turtle"},
+                auth=auth,
+            )
+            if resp.status_code in [200, 201, 204]:
+                logger.info(f"Twin ontology loaded ({len(ontology)} triples)")
+            else:
+                logger.error(f"Failed to load ontology: {resp.status_code} - {resp.text}")
+
+    except Exception as e:
+        logger.warning(f"Could not ensure Fuseki dataset: {e}")
+        logger.warning("Fuseki may not be available yet - dataset will need manual setup")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
@@ -37,6 +88,9 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     init_db()
     logger.info("Database initialized successfully")
+
+    # Ensure Fuseki dataset exists
+    await ensure_fuseki_dataset()
 
     yield
 
