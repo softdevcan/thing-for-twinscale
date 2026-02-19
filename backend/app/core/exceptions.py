@@ -1,7 +1,7 @@
 """
-TwinScale-Lite Exceptions
+Twin-Lite Exceptions
 
-Simplified exception handling for the TwinScale-Lite API.
+Simplified exception handling for the Twin-Lite API.
 """
 
 import logging
@@ -13,8 +13,8 @@ from fastapi import HTTPException, status, Request
 logger = logging.getLogger(__name__)
 
 
-class TwinScaleException(Exception):
-    """Base exception for TwinScale-Lite"""
+class TwinException(Exception):
+    """Base exception for Twin-Lite"""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -37,7 +37,7 @@ class FusekiException(Exception):
         return f"{self.message} (Status: {self.status_code})"
 
 
-class ValidationError(TwinScaleException):
+class ValidationError(TwinException):
     """Raised when validation fails"""
     def __init__(self, detail: str):
         self.status_code = status.HTTP_400_BAD_REQUEST
@@ -45,7 +45,7 @@ class ValidationError(TwinScaleException):
         super().__init__(detail)
 
 
-class NotFoundException(TwinScaleException):
+class NotFoundException(TwinException):
     """Raised when a resource is not found"""
     def __init__(self, resource_type: str, resource_id: str):
         self.status_code = status.HTTP_404_NOT_FOUND

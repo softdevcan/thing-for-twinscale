@@ -1,8 +1,8 @@
 """
-Tenant Model for TwinScale-Lite
+Tenant Model for Twin-Lite
 
 Simplified tenant model without user authentication.
-Tenants are used to organize and isolate TwinScale things.
+Tenants are used to organize and isolate Twin things.
 """
 
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text

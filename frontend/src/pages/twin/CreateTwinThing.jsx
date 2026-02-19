@@ -11,7 +11,7 @@ import { Plus, Loader2, Check, Trash2, MapPin, Building2, Layers, Info, FileCode
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import TwinScaleService from '@/services/twinscaleService'
+import TwinService from '@/services/twinService'
 import MapComponent from '@/components/map/MapComponent'
 import { useTranslation } from 'react-i18next'
 import useTenantStore from '@/store/useTenantStore'
@@ -19,7 +19,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import DTDLSelectionModal from '@/components/dtdl/DTDLSelectionModal'
 import DTDLValidationPanel from '@/components/dtdl/DTDLValidationPanel'
 
-const CreateTwinScaleThing = () => {
+const CreateTwinThing = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { toast } = useToast()
@@ -131,16 +131,16 @@ const CreateTwinScaleThing = () => {
       }
 
       // Simple YAML preview generation
-      const interfacePreview = `apiVersion: dtd.twinscale/v0
+      const interfacePreview = `apiVersion: dtd.twin/v0
 kind: TwinInterface
 metadata:
-  name: ems-iodt2-${normalizedId}
+  name: iodt2-${normalizedId}
   labels:
 ${labelsSection.join('\n')}${annotationsSection.length > 0 ? `
   annotations:
 ${annotationsSection.join('\n')}` : ''}
 spec:
-  name: ems-iodt2-${normalizedId}
+  name: iodt2-${normalizedId}
   properties:
 ${formData.properties.map(p => `    - name: ${p.name}
       type: ${p.type}
@@ -162,15 +162,15 @@ ${formData.commands.map(c => `    - name: ${c.name}
       }
       instanceLabelsSection.push(`    thing-type: ${formData.thing_type}`)
 
-      setInstanceYaml(`apiVersion: dtd.twinscale/v0
+      setInstanceYaml(`apiVersion: dtd.twin/v0
 kind: TwinInstance
 metadata:
-  name: ems-iodt2-${normalizedId}
+  name: iodt2-${normalizedId}
   labels:
 ${instanceLabelsSection.join('\n')}
 spec:
-  name: ems-iodt2-${normalizedId}
-  interface: ems-iodt2-${normalizedId}
+  name: iodt2-${normalizedId}
+  interface: iodt2-${normalizedId}
   twinInstanceRelationships: []`)
     }
   }, [formData, currentTenant])
@@ -197,7 +197,18 @@ spec:
 
     setIsLoading(true)
     try {
-      const result = await TwinScaleService.createTwinScaleThing(formData)
+      // Strip UI-only fields before sending to backend
+      // Also normalize DTDL types to backend-accepted types
+      const dtdlTypeMap = { double: 'float', long: 'integer', date: 'string', dateTime: 'string', duration: 'string', time: 'string' }
+      const { dtdl_interface_summary, ...rest } = formData
+      const payload = {
+        ...rest,
+        properties: formData.properties.map(({ isTelemetry, type, ...prop }) => ({
+          ...prop,
+          type: dtdlTypeMap[type] || type || 'string',
+        })),
+      }
+      const result = await TwinService.createTwinThing(payload)
       toast({
         title: t('common.success'),
         description: t('createThing.createSuccess', { name: formData.name }),
@@ -274,7 +285,7 @@ spec:
       maximum: null,                         // Could extract from maxValue property
     })) || []
 
-    // Auto-fill telemetry as properties (TwinScale treats them similarly)
+    // Auto-fill telemetry as properties (Twin treats them similarly)
     const dtdlTelemetry = summary.telemetryDetails?.map((tel) => ({
       name: tel.name,
       type: tel.type || 'float',            // Telemetry is usually numeric
@@ -283,6 +294,7 @@ spec:
       unit: tel.unit || '',                  // Use DTDL unit
       minimum: null,
       maximum: null,
+      isTelemetry: true,                    // Mark as telemetry for validation
     })) || []
 
     // Auto-fill commands with descriptions
@@ -361,7 +373,7 @@ spec:
 
     // Fetch address and altitude from location service
     try {
-      const locationInfo = await TwinScaleService.getLocationInfo(lngLat.lat, lngLat.lng)
+      const locationInfo = await TwinService.getLocationInfo(lngLat.lat, lngLat.lng)
 
       if (locationInfo) {
         setFormData(prevData => ({
@@ -445,6 +457,27 @@ spec:
             onValueChange={(value) => setFormData({ ...formData, thing_type: value })}
             className="grid grid-cols-3 gap-4"
           >
+
+             {/* Sensor Option */}
+             <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="sensor" id="sensor" />
+                <Label htmlFor="sensor" className="cursor-pointer font-semibold text-base">
+                  🌡️ {t('createThing.typeSensor')}
+                </Label>
+              </div>
+              <div className="text-sm text-muted-foreground space-y-1 flex-1">
+                <p>{t('createThing.typeSensorDesc')}</p>
+                <p className="text-xs italic">
+                  <strong>Example:</strong> Single DHT22 temperature sensor
+                </p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  <Badge variant="secondary" className="text-xs">DTDL: Simple Interface</Badge>
+                  <Badge variant="secondary" className="text-xs">Ditto: Single Feature</Badge>
+                </div>
+              </div>
+            </div>
+
             {/* Device Option */}
             <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
               <div className="flex items-center space-x-2">
@@ -465,26 +498,7 @@ spec:
               </div>
             </div>
 
-            {/* Sensor Option */}
-            <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="sensor" id="sensor" />
-                <Label htmlFor="sensor" className="cursor-pointer font-semibold text-base">
-                  🌡️ {t('createThing.typeSensor')}
-                </Label>
-              </div>
-              <div className="text-sm text-muted-foreground space-y-1 flex-1">
-                <p>{t('createThing.typeSensorDesc')}</p>
-                <p className="text-xs italic">
-                  <strong>Example:</strong> Single DHT22 temperature sensor
-                </p>
-                <div className="flex flex-wrap gap-1 mt-2">
-                  <Badge variant="secondary" className="text-xs">DTDL: Simple Interface</Badge>
-                  <Badge variant="secondary" className="text-xs">Ditto: Single Feature</Badge>
-                </div>
-              </div>
-            </div>
-
+           
             {/* Component Option */}
             <div className="flex flex-col space-y-3 border rounded-lg p-4 hover:bg-accent transition-colors cursor-pointer h-full">
               <div className="flex items-center space-x-2">
@@ -611,7 +625,11 @@ spec:
                     variant="default"
                     size="sm"
                     className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
-                    disabled={!formData.dtdl_interface_summary?.propertyNames?.length}
+                    disabled={
+                      !formData.dtdl_interface_summary?.propertyNames?.length &&
+                      !formData.dtdl_interface_summary?.telemetryNames?.length &&
+                      !formData.dtdl_interface_summary?.commandNames?.length
+                    }
                   >
                     <Wand2 className="mr-2 h-4 w-4" />
                     {t('dtdl.autoFill')}
@@ -825,7 +843,7 @@ spec:
                       onChange={(e) => updateRelationship(index, 'name', e.target.value)}
                     />
                     <Input
-                      placeholder="Target Interface (e.g., ems-iodt2-location)"
+                      placeholder="Target Interface (e.g., iodt2-location)"
                       value={rel.target_interface}
                       onChange={(e) => updateRelationship(index, 'target_interface', e.target.value)}
                     />
@@ -1028,4 +1046,4 @@ spec:
   )
 }
 
-export default CreateTwinScaleThing
+export default CreateTwinThing

@@ -5,10 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { Plus, Search, Download, Trash2, Eye, Loader2 } from 'lucide-react'
-import TwinScaleService from '@/services/twinscaleService'
+import TwinService from '@/services/twinService'
 import { useTranslation } from 'react-i18next'
 
-const TwinScaleThingList = () => {
+const TwinThingList = () => {
   const { t } = useTranslation()
   const { toast } = useToast()
   const [interfaces, setInterfaces] = useState([])
@@ -18,7 +18,7 @@ const TwinScaleThingList = () => {
   const loadInterfaces = async () => {
     setIsLoading(true)
     try {
-      const data = await TwinScaleService.listInterfaces(
+      const data = await TwinService.listInterfaces(
         searchFilter || null,
         100
       )
@@ -44,11 +44,11 @@ const TwinScaleThingList = () => {
 
   const handleExport = async (interfaceName) => {
     try {
-      const blob = await TwinScaleService.exportAsZip(interfaceName)
+      const blob = await TwinService.exportAsZip(interfaceName)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${interfaceName}_twinscale.zip`
+      a.download = `${interfaceName}_twin.zip`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -72,7 +72,7 @@ const TwinScaleThingList = () => {
     }
 
     try {
-      await TwinScaleService.deleteInterface(interfaceName)
+      await TwinService.deleteInterface(interfaceName)
       toast({
         title: t('common.success'),
         description: t('things.deleteSuccess') || `Interface "${interfaceName}" deleted successfully`,
@@ -183,4 +183,4 @@ const TwinScaleThingList = () => {
   )
 }
 
-export default TwinScaleThingList
+export default TwinThingList

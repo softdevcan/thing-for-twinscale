@@ -1,19 +1,20 @@
 version: '3.8'
+name: iodt2-thing-description
 
 services:
   # Apache Jena Fuseki - RDF Triple Store
   fuseki:
     image: stain/jena-fuseki:latest
-    container_name: twinscale-fuseki
+    container_name: iodt2-thing-fuseki
     ports:
       - "3030:3030"
     environment:
       - ADMIN_PASSWORD=admin123
       - JVM_ARGS=-Xmx2g
     volumes:
-      - fuseki-data:/fuseki
+      - iodt2-fuseki-data:/fuseki
     networks:
-      - twinscale-network
+      - iodt2-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3030/$/ping"]
@@ -26,23 +27,25 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: twinscale-backend
+    container_name: iodt2-thing-backend
     ports:
       - "3015:3015"
     environment:
       - ENVIRONMENT=production
       - DEBUG=False
       - FUSEKI_URL=http://fuseki:3030
-      - FUSEKI_DATASET=twinscale
+      - FUSEKI_DATASET=iodt2-thing-description
+      - FUSEKI_USERNAME=admin
+      - FUSEKI_PASSWORD=admin123
       - CORS_ORIGINS=http://localhost,http://localhost:3005,http://frontend
     volumes:
       - ./backend:/app
-      - backend-data:/app/data
+      - iodt2-backend-data:/app/data
     depends_on:
       fuseki:
         condition: service_healthy
     networks:
-      - twinscale-network
+      - iodt2-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3015/health"]
@@ -55,13 +58,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: twinscale-frontend
+    container_name: iodt2-thing-frontend
     ports:
       - "3005:80"
     depends_on:
       - backend
     networks:
-      - twinscale-network
+      - iodt2-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
@@ -70,11 +73,11 @@ services:
       retries: 3
 
 volumes:
-  fuseki-data:
-    driver: local
-  backend-data:
-    driver: local
+  iodt2-fuseki-data:
+    name: iodt2-fuseki-data
+  iodt2-backend-data:
+    name: iodt2-backend-data
 
 networks:
-  twinscale-network:
-    driver: bridge
+  iodt2-network:
+    name: iodt2-network

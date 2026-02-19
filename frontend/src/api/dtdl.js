@@ -67,7 +67,7 @@ export const suggestInterfaces = async (data) => {
 }
 
 /**
- * Validate a TwinScale Thing against a DTDL interface
+ * Validate a Twin Thing against a DTDL interface
  * @param {Object} data - Validation request
  * @param {Object} data.thing_data - Thing properties and telemetry
  * @param {string} data.dtmi - DTDL interface identifier
@@ -94,22 +94,22 @@ export const findBestMatch = async (data) => {
 }
 
 /**
- * Convert DTDL interface to TwinScale YAML template
+ * Convert DTDL interface to Twin YAML template
  * @param {Object} data - Conversion request
  * @param {string} data.dtmi - DTDL interface identifier
  * @param {string} data.thing_name - Optional Thing name
  * @param {string} data.tenant_id - Optional tenant ID
  * @returns {Promise} TwinInterface and TwinInstance YAML templates
  */
-export const convertToTwinScale = async (data) => {
-  const response = await axiosInstance.post('/v2/dtdl/convert/to-twinscale', data)
+export const convertToTwin = async (data) => {
+  const response = await axiosInstance.post('/v2/dtdl/convert/to-twin', data)
   return response.data
 }
 
 /**
- * Enrich TwinScale Thing with DTDL metadata
+ * Enrich Twin Thing with DTDL metadata
  * @param {Object} data - Enrich request
- * @param {Object} data.thing_data - TwinScale Thing data
+ * @param {Object} data.thing_data - Twin Thing data
  * @param {string} data.dtmi - DTDL interface identifier
  * @returns {Promise} Enriched Thing data with DTDL annotations
  */
@@ -153,7 +153,7 @@ export default {
   suggestInterfaces,
   validateThing,
   findBestMatch,
-  convertToTwinScale,
+  convertToTwin,
   enrichWithDTDL,
   listDomains,
   listThingTypes,

@@ -1,12 +1,12 @@
 """
-TwinScale RDF Service
+Twin RDF Service
 
-Converts TwinScale YAML to RDF triples and stores them in Fuseki twinscale-db.
-Provides SPARQL query capabilities for TwinScale data.
+Converts Twin YAML to RDF triples and stores them in Fuseki twin-db.
+Provides SPARQL query capabilities for Twin data.
 
 Usage:
-    service = TwinScaleRDFService()
-    await service.store_twinscale_yaml(interface_yaml, instance_yaml, thing_id)
+    service = TwinRDFService()
+    await service.store_twin_yaml(interface_yaml, instance_yaml, thing_id)
     results = await service.query_interfaces()
 """
 
@@ -20,11 +20,11 @@ from rdflib import Graph, Literal, URIRef, BNode, Namespace
 from rdflib.namespace import RDF, RDFS, XSD
 
 from ..core.config import get_settings
-from ..core.twinscale_ontology import (
-    TWINSCALE, TWINSCALE_DATA,
+from ..core import (
+    TWIN, TWIN_DATA,
     create_interface_uri, create_instance_uri,
     create_property_uri, create_relationship_uri, create_command_uri,
-    get_twinscale_ontology
+    get_twin_ontology
 )
 from ..core.exceptions import FusekiException
 
@@ -32,19 +32,19 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-class TwinScaleRDFService:
-    """Service for managing TwinScale data in RDF format"""
+class TwinRDFService:
+    """Service for managing Twin data in RDF format"""
 
     def __init__(self, username: str = None, password: str = None):
         """
-        Initialize TwinScale RDF Service
+        Initialize Twin RDF Service
 
         Args:
             username: Fuseki username (default from settings)
             password: Fuseki password (default from settings)
         """
         self.fuseki_url = settings.FUSEKI_URL
-        self.dataset = "twinscale-db"
+        self.dataset = settings.FUSEKI_DATASET
         self.endpoint = f"{self.fuseki_url}/{self.dataset}"
         self.query_endpoint = f"{self.endpoint}/query"
         self.update_endpoint = f"{self.endpoint}/update"
@@ -54,16 +54,16 @@ class TwinScaleRDFService:
         self.password = password or settings.FUSEKI_PASSWORD
 
         # Namespaces
-        self.TS = TWINSCALE
-        self.TSD = TWINSCALE_DATA
+        self.TS = TWIN
+        self.TSD = TWIN_DATA
 
-        logger.info(f"TwinScaleRDFService initialized with endpoint: {self.endpoint}")
+        logger.info(f"TwinRDFService initialized with endpoint: {self.endpoint}")
 
     # ========================================================================
     # Public API - Store Operations
     # ========================================================================
 
-    async def store_twinscale_yaml(
+    async def store_twin_yaml(
         self,
         interface_yaml: str,
         instance_yaml: str,
@@ -71,7 +71,7 @@ class TwinScaleRDFService:
         metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
         """
-        Store TwinScale YAML as RDF triples in Fuseki using Named Graph
+        Store Twin YAML as RDF triples in Fuseki using Named Graph
 
         Args:
             interface_yaml: TwinInterface YAML string
@@ -107,22 +107,22 @@ class TwinScaleRDFService:
             # Get tenant_id from metadata
             tenant_id = metadata.get("tenant_id", "default") if metadata else "default"
 
-            # Create named graph URI: http://twinscale.io/graphs/{tenant_id}/{thing_id}
-            graph_uri = f"http://twinscale.io/graphs/{tenant_id}/{thing_id}"
+            # Create named graph URI: http://twin.io/graphs/{tenant_id}/{thing_id}
+            graph_uri = f"http://twin.io/graphs/{tenant_id}/{thing_id}"
 
             # Store in Fuseki as Named Graph
             await self._store_named_graph(graph, graph_uri)
 
-            logger.info(f"Successfully stored TwinScale RDF for thing: {thing_id} in graph: {graph_uri}")
+            logger.info(f"Successfully stored Twin RDF for thing: {thing_id} in graph: {graph_uri}")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to store TwinScale RDF: {str(e)}")
-            raise FusekiException(f"Failed to store TwinScale RDF: {str(e)}")
+            logger.error(f"Failed to store Twin RDF: {str(e)}")
+            raise FusekiException(f"Failed to store Twin RDF: {str(e)}")
 
-    async def delete_twinscale(self, interface_name: str, tenant_id: str = "default") -> bool:
+    async def delete_twin(self, interface_name: str, tenant_id: str = "default") -> bool:
         """
-        Delete TwinScale interface and all its instances from Fuseki by dropping the named graph
+        Delete Twin interface and all its instances from Fuseki by dropping the named graph
 
         Args:
             interface_name: Name of the TwinInterface to delete
@@ -132,10 +132,10 @@ class TwinScaleRDFService:
             bool: True if successful
         """
         try:
-            # Construct the thing_id from interface_name (remove ems-iodt2- prefix if present)
-            # interface_name format: ems-iodt2-sensor1
+            # Construct the thing_id from interface_name (remove iodt2- prefix if present)
+            # interface_name format: iodt2-sensor1
             # thing_id format: tenant:sensor1 or just sensor1
-            thing_id_part = interface_name.replace("ems-iodt2-", "")
+            thing_id_part = interface_name.replace("iodt2-", "")
 
             # Try both formats: with and without tenant prefix
             possible_thing_ids = [
@@ -145,7 +145,7 @@ class TwinScaleRDFService:
 
             # Try to find and drop the graph
             for thing_id in possible_thing_ids:
-                graph_uri = f"http://twinscale.io/graphs/{tenant_id}/{thing_id}"
+                graph_uri = f"http://twin.io/graphs/{tenant_id}/{thing_id}"
 
                 # DROP GRAPH query
                 query = f"""
@@ -155,12 +155,12 @@ class TwinScaleRDFService:
                 await self._execute_update(query)
                 logger.info(f"Attempted to delete graph: {graph_uri}")
 
-            logger.info(f"Deleted TwinScale data for interface: {interface_name}")
+            logger.info(f"Deleted Twin data for interface: {interface_name}")
             return True
 
         except Exception as e:
-            logger.error(f"Failed to delete TwinScale data: {str(e)}")
-            raise FusekiException(f"Failed to delete TwinScale data: {str(e)}")
+            logger.error(f"Failed to delete Twin data: {str(e)}")
+            raise FusekiException(f"Failed to delete Twin data: {str(e)}")
 
     # ========================================================================
     # Public API - Query Operations
@@ -188,20 +188,25 @@ class TwinScaleRDFService:
             if name_filter:
                 filter_clause = f'FILTER(CONTAINS(LCASE(?name), "{name_filter.lower()}"))'
 
-            # Query across all named graphs
+            # Build tenant graph filter
+            graph_filter = self._build_tenant_graph_filter(tenant_id)
+
+            # Query across all named graphs - only TwinInterface, not TwinInstance
             query = f"""
             PREFIX ts: <{self.TS}>
             PREFIX tsd: <{self.TSD}>
 
-            SELECT ?interface ?name ?description ?generatedAt ?graph
+            SELECT DISTINCT ?interface ?name ?description ?generatedAt ?graph
             WHERE {{
                 GRAPH ?graph {{
                     ?interface a ts:TwinInterface .
+                    FILTER NOT EXISTS {{ ?interface a ts:TwinInstance }}
                     ?interface ts:name ?name .
                     OPTIONAL {{ ?interface ts:description ?description }}
                     OPTIONAL {{ ?interface ts:generatedAt ?generatedAt }}
+                    {filter_clause}
                 }}
-                {filter_clause}
+                {graph_filter}
             }}
             ORDER BY ?name
             LIMIT {limit}
@@ -240,7 +245,7 @@ class TwinScaleRDFService:
             # Add tenant filter if provided
             graph_filter = ""
             if tenant_id:
-                graph_filter = f"FILTER(STRSTARTS(STR(?graph), 'http://twinscale.io/graphs/{tenant_id}/'))"
+                graph_filter = f"FILTER(STRSTARTS(STR(?graph), 'http://twin.io/graphs/{tenant_id}/'))"
 
             query = f"""
             PREFIX ts: <{self.TS}>
@@ -285,7 +290,7 @@ class TwinScaleRDFService:
             # Add tenant filter if provided
             graph_filter = ""
             if tenant_id:
-                graph_filter = f"FILTER(STRSTARTS(STR(?graph), 'http://twinscale.io/graphs/{tenant_id}/'))"
+                graph_filter = f"FILTER(STRSTARTS(STR(?graph), 'http://twin.io/graphs/{tenant_id}/'))"
 
             query = f"""
             PREFIX ts: <{self.TS}>
@@ -338,6 +343,366 @@ class TwinScaleRDFService:
             logger.error(f"Failed to get interface details: {str(e)}")
             raise FusekiException(f"Failed to get interface details: {str(e)}")
 
+    async def search(
+        self,
+        query: str,
+        tenant_id: Optional[str] = None,
+        limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Full-text search across TwinInterfaces and TwinInstances.
+
+        Searches by name, description, original ID, property names, and graph URI.
+
+        Args:
+            query: Search string (substring match, case-insensitive)
+            tenant_id: Optional tenant filter
+            limit: Maximum number of results
+
+        Returns:
+            List of matching items with id, name, type, description, graph
+        """
+        try:
+            graph_filter = self._build_tenant_graph_filter(tenant_id)
+
+            safe_query = query.replace('\\', '\\\\').replace('"', '\\"').replace("'", "\\'")
+            lc_query = safe_query.lower()
+
+            # Use UNION pattern to search across different fields
+            # This avoids issues with OPTIONAL + FILTER interactions in Fuseki
+            sparql = f"""
+            PREFIX ts: <{self.TS}>
+            PREFIX tsd: <{self.TSD}>
+
+            SELECT DISTINCT ?uri ?name ?type ?description ?graph ?originalId ?thingType
+            WHERE {{
+                GRAPH ?graph {{
+                    ?uri ts:name ?name .
+                    ?uri a ?type .
+                    FILTER(?type IN (ts:TwinInterface, ts:TwinInstance))
+                    OPTIONAL {{ ?uri ts:description ?description }}
+                    OPTIONAL {{ ?uri ts:originalId ?originalId }}
+                    OPTIONAL {{ ?uri ts:thingType ?thingType }}
+                }}
+                {graph_filter}
+                FILTER(
+                    CONTAINS(LCASE(STR(?name)), "{lc_query}")
+                    || CONTAINS(LCASE(STR(?graph)), "{lc_query}")
+                    || (BOUND(?description) && CONTAINS(LCASE(STR(?description)), "{lc_query}"))
+                    || (BOUND(?originalId) && CONTAINS(LCASE(STR(?originalId)), "{lc_query}"))
+                )
+            }}
+            ORDER BY ?name
+            LIMIT {limit}
+            """
+
+            results = await self._execute_query(sparql)
+            parsed = self._parse_sparql_results(results)
+
+            # Normalize results for frontend consumption
+            items = []
+            for row in parsed:
+                item = {
+                    "id": row.get("uri", ""),
+                    "name": row.get("name", ""),
+                    "type": "TwinInterface" if "TwinInterface" in row.get("type", "") else "TwinInstance",
+                    "description": row.get("description"),
+                    "graph": row.get("graph", ""),
+                    "originalId": row.get("originalId"),
+                    "thingType": row.get("thingType"),
+                }
+                items.append(item)
+            return items
+
+        except Exception as e:
+            logger.error(f"Failed to search: {str(e)}")
+            raise FusekiException(f"Failed to search: {str(e)}")
+
+    async def get_all_things(
+        self,
+        page: int = 1,
+        page_size: int = 10,
+        tenant_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get all TwinInterfaces and TwinInstances with pagination.
+
+        Args:
+            page: Page number (1-based)
+            page_size: Items per page
+            tenant_id: Optional tenant filter
+
+        Returns:
+            Dict with items list and pagination info
+        """
+        try:
+            graph_filter = self._build_tenant_graph_filter(tenant_id)
+
+            offset = (page - 1) * page_size
+
+            query = f"""
+            PREFIX ts: <{self.TS}>
+            PREFIX tsd: <{self.TSD}>
+
+            SELECT ?uri ?name ?type ?description ?graph ?originalId ?thingType
+            WHERE {{
+                GRAPH ?graph {{
+                    ?uri ts:name ?name .
+                    ?uri a ?type .
+                    FILTER(?type IN (ts:TwinInterface, ts:TwinInstance))
+                    OPTIONAL {{ ?uri ts:description ?description }}
+                    OPTIONAL {{ ?uri ts:originalId ?originalId }}
+                    OPTIONAL {{ ?uri ts:thingType ?thingType }}
+                }}
+                {graph_filter}
+            }}
+            ORDER BY ?name
+            OFFSET {offset}
+            LIMIT {page_size}
+            """
+
+            results = await self._execute_query(query)
+            parsed = self._parse_sparql_results(results)
+
+            items = []
+            for row in parsed:
+                item = {
+                    "id": row.get("uri", ""),
+                    "name": row.get("name", ""),
+                    "type": "TwinInterface" if "TwinInterface" in row.get("type", "") else "TwinInstance",
+                    "description": row.get("description"),
+                    "graph": row.get("graph", ""),
+                    "originalId": row.get("originalId"),
+                    "thingType": row.get("thingType"),
+                }
+                items.append(item)
+
+            return {
+                "items": items,
+                "pagination": {
+                    "page": page,
+                    "pageSize": page_size,
+                    "total": len(items)
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to get all things: {str(e)}")
+            raise FusekiException(f"Failed to get all things: {str(e)}")
+
+    async def get_thing_by_id(
+        self,
+        thing_id: str,
+        tenant_id: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get a single thing (interface or instance) by its URI or name.
+
+        Args:
+            thing_id: Thing URI or name
+            tenant_id: Optional tenant filter
+
+        Returns:
+            Thing details or None
+        """
+        try:
+            graph_filter = self._build_tenant_graph_filter(tenant_id)
+
+            safe_id = thing_id.replace('"', '\\"')
+
+            query = f"""
+            PREFIX ts: <{self.TS}>
+            PREFIX tsd: <{self.TSD}>
+
+            SELECT ?uri ?name ?type ?description ?graph ?originalId ?thingType
+                   ?propName ?propType ?propDesc
+            WHERE {{
+                GRAPH ?graph {{
+                    ?uri a ?type .
+                    ?uri ts:name ?name .
+                    FILTER(?type IN (ts:TwinInterface, ts:TwinInstance))
+                    FILTER(
+                        STR(?uri) = "{safe_id}"
+                        || STR(?name) = "{safe_id}"
+                        || CONTAINS(STR(?graph), "{safe_id}")
+                    )
+                    OPTIONAL {{ ?uri ts:description ?description }}
+                    OPTIONAL {{ ?uri ts:originalId ?originalId }}
+                    OPTIONAL {{ ?uri ts:thingType ?thingType }}
+                    OPTIONAL {{
+                        ?uri ts:hasProperty ?prop .
+                        ?prop ts:propertyName ?propName .
+                        ?prop ts:propertyType ?propType .
+                        OPTIONAL {{ ?prop ts:description ?propDesc }}
+                    }}
+                }}
+                {graph_filter}
+            }}
+            """
+
+            results = await self._execute_query(query)
+            parsed = self._parse_sparql_results(results)
+
+            if not parsed:
+                return None
+
+            first = parsed[0]
+            thing = {
+                "id": first.get("uri", ""),
+                "@id": first.get("originalId") or first.get("name", ""),
+                "name": first.get("name", ""),
+                "title": first.get("name", ""),
+                "type": "TwinInterface" if "TwinInterface" in first.get("type", "") else "TwinInstance",
+                "description": first.get("description"),
+                "graph": first.get("graph", ""),
+                "thingType": first.get("thingType"),
+                "properties": {}
+            }
+
+            seen_props = set()
+            for row in parsed:
+                prop_name = row.get("propName")
+                if prop_name and prop_name not in seen_props:
+                    thing["properties"][prop_name] = {
+                        "type": row.get("propType", "string"),
+                        "description": row.get("propDesc"),
+                    }
+                    seen_props.add(prop_name)
+
+            return thing
+
+        except Exception as e:
+            logger.error(f"Failed to get thing by id: {str(e)}")
+            raise FusekiException(f"Failed to get thing by id: {str(e)}")
+
+    async def check_health(self) -> Dict[str, Any]:
+        """Check Fuseki connection health"""
+        try:
+            query = "SELECT (COUNT(*) AS ?count) WHERE { ?s ?p ?o } LIMIT 1"
+            results = await self._execute_query(query)
+            parsed = self._parse_sparql_results(results)
+            triple_count = parsed[0].get("count", "0") if parsed else "0"
+
+            return {
+                "status": "healthy",
+                "fuseki_url": self.fuseki_url,
+                "dataset": self.dataset,
+                "triple_count": triple_count
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "error": str(e),
+                "fuseki_url": self.fuseki_url,
+                "dataset": self.dataset
+            }
+
+    async def search_by_property(
+        self,
+        property_name: str,
+        operator: str = "eq",
+        value: float = 0,
+        tenant_id: Optional[str] = None,
+        limit: int = 100
+    ) -> Dict[str, Any]:
+        """
+        Search TwinInterfaces by property schema criteria.
+
+        Finds interfaces that have a matching property and optionally
+        filters by the property's min/max range defined in the schema.
+
+        Args:
+            property_name: Property name to search for (e.g., 'temperature')
+            operator: Comparison operator ('gt', 'gte', 'lt', 'lte', 'eq', 'ne')
+            value: Threshold value to compare against property min/max
+            tenant_id: Optional tenant filter
+            limit: Maximum results
+
+        Returns:
+            Dict with results list, count, and metadata
+        """
+        import time
+        start_time = time.time()
+
+        try:
+            graph_filter = self._build_tenant_graph_filter(tenant_id)
+            safe_prop = property_name.replace('"', '\\"').lower()
+
+            # Build the value filter based on operator
+            # We compare against the property's min/max range in the schema
+            value_filter = ""
+            if operator == "gt":
+                value_filter = f"&& (?propMax > {value} || !BOUND(?propMax))"
+            elif operator == "gte":
+                value_filter = f"&& (?propMax >= {value} || !BOUND(?propMax))"
+            elif operator == "lt":
+                value_filter = f"&& (?propMin < {value} || !BOUND(?propMin))"
+            elif operator == "lte":
+                value_filter = f"&& (?propMin <= {value} || !BOUND(?propMin))"
+            elif operator == "eq":
+                value_filter = f"&& (?propMin <= {value} || !BOUND(?propMin)) && (?propMax >= {value} || !BOUND(?propMax))"
+
+            sparql = f"""
+            PREFIX ts: <{self.TS}>
+            PREFIX tsd: <{self.TSD}>
+
+            SELECT DISTINCT ?interface ?name ?propName ?propType ?propMin ?propMax ?unit ?description ?graph ?thingType
+            WHERE {{
+                GRAPH ?graph {{
+                    ?interface a ts:TwinInterface .
+                    ?interface ts:name ?name .
+                    ?interface ts:hasProperty ?prop .
+                    ?prop ts:propertyName ?propName .
+                    ?prop ts:propertyType ?propType .
+                    FILTER(CONTAINS(LCASE(STR(?propName)), "{safe_prop}"))
+                    OPTIONAL {{ ?prop ts:minimum ?propMin }}
+                    OPTIONAL {{ ?prop ts:maximum ?propMax }}
+                    OPTIONAL {{ ?prop ts:unit ?unit }}
+                    OPTIONAL {{ ?interface ts:description ?description }}
+                    OPTIONAL {{ ?interface ts:thingType ?thingType }}
+                }}
+                {graph_filter}
+                FILTER(true {value_filter})
+            }}
+            ORDER BY ?name
+            LIMIT {limit}
+            """
+
+            results = await self._execute_query(sparql)
+            parsed = self._parse_sparql_results(results)
+
+            items = []
+            for row in parsed:
+                items.append({
+                    "thingId": row.get("interface", ""),
+                    "name": row.get("name", ""),
+                    "property": row.get("propName", ""),
+                    "propertyType": row.get("propType", ""),
+                    "min": row.get("propMin"),
+                    "max": row.get("propMax"),
+                    "unit": row.get("unit"),
+                    "description": row.get("description"),
+                    "thingType": row.get("thingType"),
+                    "graph": row.get("graph", ""),
+                })
+
+            elapsed_ms = round((time.time() - start_time) * 1000, 1)
+
+            return {
+                "results": items,
+                "count": len(items),
+                "schema_matches": len(items),
+                "value_matches": len(items),
+                "query_time_ms": elapsed_ms,
+                "property": property_name,
+                "operator": operator,
+                "value": value,
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to search by property: {str(e)}")
+            raise FusekiException(f"Failed to search by property: {str(e)}")
+
     async def get_instance_relationships(
         self,
         instance_name: str,
@@ -359,7 +724,7 @@ class TwinScaleRDFService:
             # Add tenant filter if provided
             graph_filter = ""
             if tenant_id:
-                graph_filter = f"FILTER(STRSTARTS(STR(?graph), 'http://twinscale.io/graphs/{tenant_id}/'))"
+                graph_filter = f"FILTER(STRSTARTS(STR(?graph), 'http://twin.io/graphs/{tenant_id}/'))"
 
             query = f"""
             PREFIX ts: <{self.TS}>
@@ -385,6 +750,26 @@ class TwinScaleRDFService:
         except Exception as e:
             logger.error(f"Failed to get instance relationships: {str(e)}")
             raise FusekiException(f"Failed to get instance relationships: {str(e)}")
+
+    # ========================================================================
+    # Private Helper Methods - Tenant Filtering
+    # ========================================================================
+
+    def _build_tenant_graph_filter(self, tenant_id: Optional[str] = None) -> str:
+        """
+        Build a SPARQL FILTER clause for tenant-based graph filtering.
+
+        When a specific tenant is provided, includes both that tenant's graphs
+        and the 'default' tenant graphs (since things may be stored under default).
+        """
+        if not tenant_id or tenant_id == "default":
+            return ""
+        return (
+            f"FILTER("
+            f"STRSTARTS(STR(?graph), 'http://twin.io/graphs/{tenant_id}/') "
+            f"|| STRSTARTS(STR(?graph), 'http://twin.io/graphs/default/')"
+            f")"
+        )
 
     # ========================================================================
     # Private Helper Methods - RDF Conversion
@@ -561,7 +946,7 @@ class TwinScaleRDFService:
 
         Args:
             graph: RDF graph to store
-            graph_uri: URI of the named graph (e.g., http://twinscale.io/graphs/tenant1/thing1)
+            graph_uri: URI of the named graph (e.g., http://twin.io/graphs/tenant1/thing1)
         """
         try:
             # Serialize to Turtle
@@ -719,12 +1104,12 @@ class TwinScaleRDFService:
 # Convenience Functions
 # ============================================================================
 
-def create_twinscale_rdf_service() -> TwinScaleRDFService:
-    """Factory function to create TwinScaleRDFService with default settings"""
-    return TwinScaleRDFService()
+def create_twin_rdf_service() -> TwinRDFService:
+    """Factory function to create TwinRDFService with default settings"""
+    return TwinRDFService()
 
 
 __all__ = [
-    "TwinScaleRDFService",
-    "create_twinscale_rdf_service",
+    "TwinRDFService",
+    "create_twin_rdf_service",
 ]

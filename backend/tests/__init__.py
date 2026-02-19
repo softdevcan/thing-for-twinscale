@@ -1,1 +1,1 @@
-# Tests package for TwinScale-Lite backend
+# Tests package for Twin-Lite backend

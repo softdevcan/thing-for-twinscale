@@ -1,7 +1,7 @@
 """
 DTDL Validator Service
 
-Validates TwinScale Thing compatibility with DTDL interfaces.
+Validates Twin Thing compatibility with DTDL interfaces.
 Provides compatibility scoring and recommendations for missing/incompatible fields.
 
 Usage:
@@ -53,7 +53,7 @@ class ValidationResult:
 
 
 class DTDLValidatorService:
-    """Service for validating TwinScale Things against DTDL interfaces"""
+    """Service for validating Twin Things against DTDL interfaces"""
 
     def __init__(self):
         """Initialize validator with DTDL loader"""
@@ -66,10 +66,10 @@ class DTDLValidatorService:
         strict: bool = False
     ) -> ValidationResult:
         """
-        Validate a TwinScale Thing against a DTDL interface
+        Validate a Twin Thing against a DTDL interface
 
         Args:
-            thing_data: TwinScale Thing data (properties and telemetry)
+            thing_data: Twin Thing data (properties and telemetry)
             dtmi: DTDL interface identifier
             strict: If True, extra fields are treated as errors
 
@@ -234,12 +234,19 @@ class DTDLValidatorService:
         """
         issues = []
 
+        # Skip validation for empty/placeholder values (form not yet filled)
+        if value is None or value == "" or value == 0 or value == 0.1 or value is False:
+            return issues
+
         # Handle simple schema types
         if isinstance(schema, str):
             expected_type = self._map_dtdl_type_to_python(schema)
             actual_type = type(value).__name__
 
-            if expected_type and actual_type != expected_type:
+            # Allow int where float is expected (JSON numbers)
+            if expected_type == "float" and actual_type == "int":
+                pass
+            elif expected_type and actual_type != expected_type:
                 issues.append(ValidationIssue(
                     severity=ValidationSeverity.WARNING,
                     field=f"{field_type}.{field_name}",
@@ -252,11 +259,11 @@ class DTDLValidatorService:
             schema_type = schema.get("@type")
 
             if schema_type == "Enum":
-                # Validate enum value
+                # Validate enum value only when a non-empty value is provided
                 enum_values = [ev.get("enumValue") for ev in schema.get("enumValues", [])]
                 if value not in enum_values:
                     issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
+                        severity=ValidationSeverity.WARNING,
                         field=f"{field_type}.{field_name}",
                         message=f"Invalid enum value: {value}",
                         suggestion=f"Use one of: {', '.join(str(ev) for ev in enum_values)}"
@@ -266,7 +273,7 @@ class DTDLValidatorService:
                 # Validate object structure (simplified)
                 if not isinstance(value, dict):
                     issues.append(ValidationIssue(
-                        severity=ValidationSeverity.ERROR,
+                        severity=ValidationSeverity.WARNING,
                         field=f"{field_type}.{field_name}",
                         message=f"Expected object, got {type(value).__name__}",
                         suggestion="Provide a dictionary/object value"
@@ -303,21 +310,20 @@ class DTDLValidatorService:
         Calculate compatibility score (0-100)
 
         Scoring algorithm:
-        - Base: 50 points
-        - Matched telemetry: +5 points each
-        - Matched properties: +3 points each
-        - Missing telemetry: -3 points each
-        - Missing properties: -2 points each
-        - Extra fields: -1 point each
-        - Errors: -10 points each
+        - 100 when all required fields are matched, no errors
+        - Each missing field reduces score proportionally
+        - Extra fields incur a small penalty (-2 each)
+        - Errors incur a larger penalty (-10 each)
         """
-        score = 50.0
+        total_required = matched_telemetry + matched_properties + missing_telemetry + missing_properties
 
-        score += matched_telemetry * 5
-        score += matched_properties * 3
-        score -= missing_telemetry * 3
-        score -= missing_properties * 2
-        score -= extra_fields * 1
+        if total_required == 0:
+            score = 100.0
+        else:
+            matched_ratio = (matched_telemetry + matched_properties) / total_required
+            score = matched_ratio * 100.0
+
+        score -= extra_fields * 2
         score -= total_errors * 10
 
         # Clamp to 0-100
@@ -334,7 +340,7 @@ class DTDLValidatorService:
         Find best matching DTDL interfaces for a Thing
 
         Args:
-            thing_data: TwinScale Thing data
+            thing_data: Twin Thing data
             thing_type: Optional thing type filter
             domain: Optional domain filter
             top_n: Number of top results to return

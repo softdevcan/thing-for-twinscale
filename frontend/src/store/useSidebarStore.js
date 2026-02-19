@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 /**
- * Placeholder Sidebar Store for TwinScale-Lite
+ * Placeholder Sidebar Store for Twin
  * Simplified version without complex sidebar state
  */
 const useSidebarStore = create((set) => ({

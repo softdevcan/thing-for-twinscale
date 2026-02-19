@@ -1,5 +1,5 @@
 """
-Database Configuration for TwinScale-Lite
+Database Configuration for Twin-Lite
 
 SQLAlchemy setup for tenant storage.
 """
@@ -13,7 +13,7 @@ from app.core.config import get_settings
 settings = get_settings()
 
 # Create SQLite database engine
-SQLALCHEMY_DATABASE_URL = "sqlite:///./twinscale_lite.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./iodt2_thing.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,

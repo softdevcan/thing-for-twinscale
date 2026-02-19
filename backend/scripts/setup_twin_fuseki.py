@@ -1,10 +1,10 @@
 """
-Setup TwinScale Fuseki Database
+Setup Twin Fuseki Database
 
-This script creates the twinscale-db dataset in Fuseki and loads the TwinScale ontology.
+This script creates the twin-db dataset in Fuseki and loads the Twin ontology.
 
 Usage:
-    python scripts/setup_twinscale_fuseki.py
+    python scripts/setup_twin_fuseki.py
 """
 
 import requests
@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from app.core.config import get_settings
-from app.core.twinscale_ontology import get_twinscale_ontology
+from app.core.twin_ontology import get_twin_ontology
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-def create_dataset(dataset_name: str = "twinscale-db") -> bool:
+def create_dataset(dataset_name: str = "twin-db") -> bool:
     """
     Create a new TDB2 dataset in Fuseki
 
@@ -77,9 +77,9 @@ def create_dataset(dataset_name: str = "twinscale-db") -> bool:
         return False
 
 
-def load_ontology(dataset_name: str = "twinscale-db") -> bool:
+def load_ontology(dataset_name: str = "twin-db") -> bool:
     """
-    Load TwinScale ontology into the dataset
+    Load Twin ontology into the dataset
 
     Args:
         dataset_name: Name of the dataset
@@ -88,13 +88,13 @@ def load_ontology(dataset_name: str = "twinscale-db") -> bool:
         bool: True if successful
     """
     try:
-        logger.info("Loading TwinScale ontology...")
+        logger.info("Loading Twin ontology...")
 
         fuseki_url = settings.FUSEKI_URL
         auth = (settings.FUSEKI_USERNAME, settings.FUSEKI_PASSWORD)
 
         # Get ontology graph
-        ontology = get_twinscale_ontology()
+        ontology = get_twin_ontology()
 
         # Serialize to Turtle
         turtle_data = ontology.serialize(format="turtle")
@@ -111,7 +111,7 @@ def load_ontology(dataset_name: str = "twinscale-db") -> bool:
         )
 
         if response.status_code in [200, 201, 204]:
-            logger.info(f"✓ TwinScale ontology loaded successfully ({len(ontology)} triples)")
+            logger.info(f"✓ Twin ontology loaded successfully ({len(ontology)} triples)")
             return True
         else:
             logger.error(f"✗ Failed to load ontology: {response.status_code} - {response.text}")
@@ -122,7 +122,7 @@ def load_ontology(dataset_name: str = "twinscale-db") -> bool:
         return False
 
 
-def verify_setup(dataset_name: str = "twinscale-db") -> bool:
+def verify_setup(dataset_name: str = "twin-db") -> bool:
     """
     Verify the setup by running a test query
 
@@ -173,10 +173,10 @@ def verify_setup(dataset_name: str = "twinscale-db") -> bool:
 def main():
     """Main setup function"""
     logger.info("=" * 60)
-    logger.info("TwinScale Fuseki Database Setup")
+    logger.info("Twin Fuseki Database Setup")
     logger.info("=" * 60)
     logger.info(f"Fuseki URL: {settings.FUSEKI_URL}")
-    logger.info(f"Dataset: twinscale-db")
+    logger.info(f"Dataset: twin-db")
     logger.info("=" * 60)
 
     # Step 1: Create dataset
@@ -195,11 +195,11 @@ def main():
         sys.exit(1)
 
     logger.info("=" * 60)
-    logger.info("✓ TwinScale Fuseki setup completed successfully!")
+    logger.info("✓ Twin Fuseki setup completed successfully!")
     logger.info("=" * 60)
-    logger.info(f"Query endpoint: {settings.FUSEKI_URL}/twinscale-db/query")
-    logger.info(f"Update endpoint: {settings.FUSEKI_URL}/twinscale-db/update")
-    logger.info(f"Data endpoint: {settings.FUSEKI_URL}/twinscale-db/data")
+    logger.info(f"Query endpoint: {settings.FUSEKI_URL}/twin-db/query")
+    logger.info(f"Update endpoint: {settings.FUSEKI_URL}/twin-db/update")
+    logger.info(f"Data endpoint: {settings.FUSEKI_URL}/twin-db/data")
     logger.info("=" * 60)
 
 

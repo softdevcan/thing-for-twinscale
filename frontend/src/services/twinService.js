@@ -1,7 +1,7 @@
 /**
- * TwinScale-Lite Service
+ * Twin-Lite Service
  *
- * API service for TwinScale YAML creation, storage, and management.
+ * API service for Twin YAML creation, storage, and management.
  * Direct form-to-YAML-to-RDF workflow without WoT conversion.
  */
 
@@ -29,21 +29,21 @@ const handleError = (error) => {
       `Error ${error.response.status}: ${error.response.statusText}`;
     throw new Error(errorMessage);
   } else if (error.request) {
-    throw new Error("Network error: Unable to connect to TwinScale service");
+    throw new Error("Network error: Unable to connect to Twin service");
   } else {
     throw new Error(error.message || "An unexpected error occurred");
   }
 };
 
 /**
- * Create TwinScale Thing directly from form data
- * @param {Object} formData - Form data for the TwinScale Thing
+ * Create Twin Thing directly from form data
+ * @param {Object} formData - Form data for the Twin Thing
  * @returns {Promise<Object>} Created thing response
  */
-const createTwinScaleThing = async (formData) => {
+const createTwinThing = async (formData) => {
   try {
     const response = await axiosInstance.post(
-      "/v2/twinscale/create",
+      "/v2/twin/create",
       formData,
       { headers: getTenantHeaders() }
     );
@@ -54,7 +54,7 @@ const createTwinScaleThing = async (formData) => {
 };
 
 /**
- * List all TwinScale Interfaces
+ * List all Twin Interfaces
  * @param {string} nameFilter - Optional name filter
  * @param {number} limit - Maximum results
  * @returns {Promise<Object>} List of interfaces
@@ -65,7 +65,7 @@ const listInterfaces = async (nameFilter = null, limit = 100) => {
     if (nameFilter) params.name_filter = nameFilter;
 
     const response = await axiosInstance.get(
-      "/v2/twinscale/rdf/interfaces",
+      "/v2/twin/rdf/interfaces",
       { params, headers: getTenantHeaders() }
     );
     return response.data;
@@ -75,7 +75,7 @@ const listInterfaces = async (nameFilter = null, limit = 100) => {
 };
 
 /**
- * List all TwinScale Instances
+ * List all Twin Instances
  * @param {string} interfaceName - Optional interface filter
  * @param {number} limit - Maximum results
  * @returns {Promise<Object>} List of instances
@@ -86,7 +86,7 @@ const listInstances = async (interfaceName = null, limit = 100) => {
     if (interfaceName) params.interface_name = interfaceName;
 
     const response = await axiosInstance.get(
-      "/v2/twinscale/rdf/instances",
+      "/v2/twin/rdf/instances",
       { params, headers: getTenantHeaders() }
     );
     return response.data;
@@ -96,14 +96,14 @@ const listInstances = async (interfaceName = null, limit = 100) => {
 };
 
 /**
- * Get TwinScale Interface details
+ * Get Twin Interface details
  * @param {string} interfaceName - Interface name
  * @returns {Promise<Object>} Interface details
  */
 const getInterfaceDetails = async (interfaceName) => {
   try {
     const response = await axiosInstance.get(
-      `/v2/twinscale/rdf/interfaces/${interfaceName}`,
+      `/v2/twin/rdf/interfaces/${interfaceName}`,
       { headers: getTenantHeaders() }
     );
     return response.data;
@@ -113,14 +113,14 @@ const getInterfaceDetails = async (interfaceName) => {
 };
 
 /**
- * Export TwinScale YAML as ZIP
+ * Export Twin YAML as ZIP
  * @param {string} interfaceName - Interface name to export
  * @returns {Promise<Blob>} ZIP file blob
  */
 const exportAsZip = async (interfaceName) => {
   try {
     const response = await axiosInstance.get(
-      `/v2/twinscale/export/${interfaceName}`,
+      `/v2/twin/export/${interfaceName}`,
       {
         headers: getTenantHeaders(),
         responseType: "blob"
@@ -133,14 +133,14 @@ const exportAsZip = async (interfaceName) => {
 };
 
 /**
- * Delete TwinScale Interface
+ * Delete Twin Interface
  * @param {string} interfaceName - Interface name to delete
  * @returns {Promise<Object>} Delete response
  */
 const deleteInterface = async (interfaceName) => {
   try {
     const response = await axiosInstance.delete(
-      `/v2/twinscale/rdf/interfaces/${interfaceName}`,
+      `/v2/twin/rdf/interfaces/${interfaceName}`,
       { headers: getTenantHeaders() }
     );
     return response.data;
@@ -158,7 +158,7 @@ const deleteInterface = async (interfaceName) => {
 const executeSparqlQuery = async (query, limit = 100) => {
   try {
     const response = await axiosInstance.post(
-      "/v2/twinscale/rdf/query",
+      "/v2/twin/rdf/query",
       { query, limit },
       { headers: getTenantHeaders() }
     );
@@ -169,7 +169,7 @@ const executeSparqlQuery = async (query, limit = 100) => {
 };
 
 /**
- * Validate TwinScale YAML
+ * Validate Twin YAML
  * @param {string} yamlContent - YAML content to validate
  * @param {string} kind - "TwinInterface" or "TwinInstance"
  * @returns {Promise<Object>} Validation result
@@ -177,7 +177,7 @@ const executeSparqlQuery = async (query, limit = 100) => {
 const validateYaml = async (yamlContent, kind) => {
   try {
     const response = await axiosInstance.post(
-      "/v2/twinscale/validate",
+      "/v2/twin/validate",
       { yaml_content: yamlContent, kind },
       { headers: getTenantHeaders() }
     );
@@ -195,7 +195,7 @@ const validateYaml = async (yamlContent, kind) => {
  */
 const getLocationInfo = async (latitude, longitude) => {
   try {
-    const response = await axiosInstance.get("/v2/twinscale/location", {
+    const response = await axiosInstance.get("/v2/twin/location", {
       params: { lat: latitude, lon: longitude },
       headers: getTenantHeaders(),
     });
@@ -207,9 +207,9 @@ const getLocationInfo = async (latitude, longitude) => {
   }
 };
 
-const TwinScaleService = {
+const TwinService = {
   // Creation
-  createTwinScaleThing,
+  createTwinThing,
 
   // Listing
   listInterfaces,
@@ -234,4 +234,4 @@ const TwinScaleService = {
   getLocationInfo,
 };
 
-export default TwinScaleService;
+export default TwinService;

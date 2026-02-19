@@ -1,5 +1,5 @@
 """
-Tenant Manager Service for TwinScale-Lite
+Tenant Manager Service for Twin-Lite
 
 Simplified tenant management without user authentication or Ditto integration.
 """

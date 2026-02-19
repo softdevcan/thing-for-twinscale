@@ -20,7 +20,7 @@ class LocationService:
     ELEVATION_URL = "https://api.open-elevation.com/api/v1/lookup"
 
     # Required by Nominatim API
-    USER_AGENT = "TwinScale-Lite/1.0"
+    USER_AGENT = "Twin-Lite/1.0"
 
     def __init__(self):
         """Initialize location service"""

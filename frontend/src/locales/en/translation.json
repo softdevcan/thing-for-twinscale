@@ -7,8 +7,8 @@
     "collapse": "Collapse"
   },
   "navbar": {
-    "appName": "TwinScale",
-    "appSubtitle": "Lite"
+    "appName": "IoDT2 Demo",
+    "appSubtitle": ""
   },
   "common": {
     "save": "Save",
@@ -103,7 +103,7 @@
     "preview": "Preview",
     "createButton": "Create Thing",
     "creating": "Creating...",
-    "createSuccess": "TwinScale Thing \"{{name}}\" created successfully",
+    "createSuccess": "Thing \"{{name}}\" created successfully",
     "createError": "Failed to create thing",
     "typeString": "String",
     "typeInteger": "Integer",
@@ -190,7 +190,7 @@
     "sampleSensors": "Sensors"
   },
   "footer": {
-    "copyright": "© 2024 TwinScale Lite. All rights reserved.",
+    "copyright": "© 2024 IODT2. All rights reserved.",
     "version": "Version"
   },
   "dtdl": {

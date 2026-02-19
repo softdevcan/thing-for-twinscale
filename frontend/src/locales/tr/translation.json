@@ -7,8 +7,8 @@
     "collapse": "Daralt"
   },
   "navbar": {
-    "appName": "TwinScale",
-    "appSubtitle": "Lite"
+    "appName": "IoDT2 Demo",
+    "appSubtitle": ""
   },
   "common": {
     "save": "Kaydet",
@@ -103,7 +103,7 @@
     "preview": "Önizleme",
     "createButton": "Thing Oluştur",
     "creating": "Oluşturuluyor...",
-    "createSuccess": "TwinScale Thing \"{{name}}\" başarıyla oluşturuldu",
+    "createSuccess": "Thing \"{{name}}\" başarıyla oluşturuldu",
     "createError": "Thing oluşturulamadı",
     "typeString": "Metin",
     "typeInteger": "Tam Sayı",
@@ -190,7 +190,7 @@
     "sampleSensors": "Sensörler"
   },
   "footer": {
-    "copyright": "© 2024 TwinScale Lite. Tüm hakları saklıdır.",
+    "copyright": "© 2024 IODT2. Tüm hakları saklıdır.",
     "version": "Sürüm"
   },
   "dtdl": {

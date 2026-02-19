@@ -1,5 +1,5 @@
 """
-Tenant Schemas for TwinScale-Lite
+Tenant Schemas for Twin-Lite
 
 Pydantic models for tenant CRUD operations.
 Simplified without user management.

@@ -1,1 +1,1 @@
-"""TwinScale-Lite Schemas"""
+"""Twin-Lite Schemas"""

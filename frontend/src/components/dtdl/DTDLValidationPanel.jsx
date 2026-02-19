@@ -27,22 +27,20 @@ const DTDLValidationPanel = ({ formData, dtdlInterface }) => {
       setLoading(true)
       try {
         // Convert properties array to dictionary format expected by backend
+        // Send typed scalar values so backend schema validation works correctly
         const propertiesDict = {}
         const telemetryDict = {}
 
         formData.properties.forEach(prop => {
-          // Assume properties with writable=false are telemetry
-          if (prop.writable === false && ['float', 'integer', 'double'].includes(prop.type)) {
-            telemetryDict[prop.name] = {
-              type: prop.type,
-              description: prop.description
-            }
+          const defaultValue = prop.type === 'boolean' ? false
+            : ['integer', 'long'].includes(prop.type) ? 0
+            : ['float', 'double'].includes(prop.type) ? 0.1
+            : ''
+
+          if (prop.isTelemetry) {
+            telemetryDict[prop.name] = defaultValue
           } else {
-            propertiesDict[prop.name] = {
-              type: prop.type,
-              writable: prop.writable,
-              description: prop.description
-            }
+            propertiesDict[prop.name] = defaultValue
           }
         })
 

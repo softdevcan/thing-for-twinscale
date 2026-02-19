@@ -1,4 +1,4 @@
-# TwinScale-Lite Requirements
+# Twin-Lite Requirements
 # Lightweight Digital Twin management
 
 # FastAPI Framework

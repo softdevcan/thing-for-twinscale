@@ -1,7 +1,7 @@
 """
 Test script for DTDL Validator Service
 
-Demonstrates validation of TwinScale Things against DTDL interfaces.
+Demonstrates validation of Twin Things against DTDL interfaces.
 Run this from the backend directory: python test_dtdl_validator.py
 """
 

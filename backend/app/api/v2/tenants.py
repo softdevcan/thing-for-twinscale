@@ -1,5 +1,5 @@
 """
-Tenant API Endpoints for TwinScale-Lite
+Tenant API Endpoints for Twin-Lite
 
 Simplified tenant management without authentication.
 """

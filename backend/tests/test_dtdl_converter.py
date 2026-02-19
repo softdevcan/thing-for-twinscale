@@ -1,7 +1,7 @@
 """
 Test script for DTDL Converter Service
 
-Demonstrates conversion between DTDL and TwinScale formats.
+Demonstrates conversion between DTDL and Twin formats.
 Run this from the backend directory: python test_dtdl_converter.py
 """
 
@@ -26,10 +26,10 @@ def main():
     print("   [OK] Converter initialized")
     print()
 
-    # Test Case 1: Convert Temperature Sensor to TwinScale
-    print("2. Test Case 1: Convert TemperatureSensor to TwinScale YAML")
+    # Test Case 1: Convert Temperature Sensor to Twin
+    print("2. Test Case 1: Convert TemperatureSensor to Twin YAML")
     print("   Converting dtmi:iodt2:TemperatureSensor;1...")
-    result1 = converter.dtdl_to_twinscale_template(
+    result1 = converter.dtdl_to_twin_template(
         dtmi="dtmi:iodt2:TemperatureSensor;1",
         thing_name="my-temp-sensor",
         tenant_id="tenant-001"
@@ -43,8 +43,8 @@ def main():
     print()
 
     # Test Case 2: Convert Humidity Sensor
-    print("3. Test Case 2: Convert HumiditySensor to TwinScale YAML")
-    result2 = converter.dtdl_to_twinscale_template(
+    print("3. Test Case 2: Convert HumiditySensor to Twin YAML")
+    result2 = converter.dtdl_to_twin_template(
         dtmi="dtmi:iodt2:HumiditySensor;1"
     )
     print("   Generated YAML templates for HumiditySensor")
@@ -53,7 +53,7 @@ def main():
 
     # Test Case 3: Convert Weather Station (component-based)
     print("4. Test Case 3: Convert WeatherStation (Component-based)")
-    result3 = converter.dtdl_to_twinscale_template(
+    result3 = converter.dtdl_to_twin_template(
         dtmi="dtmi:iodt2:WeatherStation;1",
         thing_name="weather-station-01"
     )
@@ -65,8 +65,8 @@ def main():
         print("   - Contains: temperatureSensor, humiditySensor")
     print()
 
-    # Test Case 4: Enrich TwinScale Thing with DTDL
-    print("5. Test Case 4: Enrich TwinScale Thing with DTDL metadata")
+    # Test Case 4: Enrich Twin Thing with DTDL
+    print("5. Test Case 4: Enrich Twin Thing with DTDL metadata")
     thing_data = {
         "metadata": {
             "name": "my-sensor",
@@ -80,7 +80,7 @@ def main():
             }
         }
     }
-    enriched = converter.enrich_twinscale_with_dtdl(
+    enriched = converter.enrich_twin_with_dtdl(
         thing_data,
         "dtmi:iodt2:TemperatureSensor;1"
     )
@@ -117,7 +117,7 @@ def main():
     ]
     for dtmi in base_interfaces:
         try:
-            result = converter.dtdl_to_twinscale_template(dtmi)
+            result = converter.dtdl_to_twin_template(dtmi)
             interface_name = result["interface_yaml"].split("name: ")[1].split("\n")[0]
             print(f"   [OK] {dtmi} -> {interface_name}")
         except Exception as e:
@@ -135,7 +135,7 @@ def main():
         ({"@type": "Object"}, "object"),
         ({"@type": "Array"}, "array")
     ]
-    print("   DTDL Schema -> TwinScale Schema:")
+    print("   DTDL Schema -> Twin Schema:")
     for dtdl_schema, expected in test_schemas:
         converted = converter._convert_dtdl_schema(dtdl_schema)
         status = "[OK]" if converted == expected else "[MISMATCH]"

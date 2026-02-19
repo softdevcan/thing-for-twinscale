@@ -1,5 +1,5 @@
 """
-TwinScale-Lite Configuration
+Twin-Lite Configuration
 
 Simplified configuration without authentication, database, or Ditto settings.
 """
@@ -11,7 +11,7 @@ from functools import lru_cache
 
 
 class Settings(BaseSettings):
-    """Application settings for TwinScale-Lite"""
+    """Application settings for Twin-Lite"""
 
     model_config = ConfigDict(
         env_file=".env",
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     # ============================================
     # APPLICATION SETTINGS
     # ============================================
-    PROJECT_NAME: str = Field(default="TwinScale-Lite")
+    PROJECT_NAME: str = Field(default="IoDT2 Demo")
     DEBUG: bool = Field(default=False)
     API_V2_PREFIX: str = Field(default="/api/v2")
     ENVIRONMENT: str = Field(default="development")
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     # FUSEKI TRIPLE STORE CONFIGURATION
     # ============================================
     FUSEKI_URL: str = Field(default="http://localhost:3030")
-    FUSEKI_DATASET: str = Field(default="twinscale-db")
+    FUSEKI_DATASET: str = Field(default="twin-db")
     FUSEKI_USERNAME: str = Field(default="admin")
     FUSEKI_PASSWORD: str = Field(default="admin")
 

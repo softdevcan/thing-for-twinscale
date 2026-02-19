@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 /**
- * Placeholder Auth Store for TwinScale-Lite
+ * Placeholder Auth Store for Twin-Lite
  * No authentication in lite version - always returns null/false
  */
 const useAuthStore = create((set) => ({

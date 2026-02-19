@@ -1,7 +1,7 @@
 """
 DTDL (Digital Twins Definition Language) Library
 
-This library contains DTDL v2 interface definitions for TwinScale platform.
+This library contains DTDL v2 interface definitions for Twin platform.
 
 Structure:
 - base/: Base interfaces (BaseTwin, SensorTwin, ActuatorTwin, etc.)

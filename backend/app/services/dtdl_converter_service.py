@@ -1,13 +1,13 @@
 """
 DTDL Converter Service
 
-Bidirectional converter between DTDL interfaces and TwinScale YAML format.
-Converts DTDL to TwinScale templates and enriches TwinScale Things with DTDL metadata.
+Bidirectional converter between DTDL interfaces and Twin YAML format.
+Converts DTDL to Twin templates and enriches Twin Things with DTDL metadata.
 
 Usage:
     converter = DTDLConverterService()
-    yaml_template = converter.dtdl_to_twinscale_template(dtmi)
-    enriched_thing = converter.enrich_twinscale_with_dtdl(thing_data, dtmi)
+    yaml_template = converter.dtdl_to_twin_template(dtmi)
+    enriched_thing = converter.enrich_twin_with_dtdl(thing_data, dtmi)
 """
 
 import logging
@@ -20,20 +20,20 @@ logger = logging.getLogger(__name__)
 
 
 class DTDLConverterService:
-    """Service for converting between DTDL and TwinScale formats"""
+    """Service for converting between DTDL and Twin formats"""
 
     def __init__(self):
         """Initialize converter with DTDL loader"""
         self.loader = get_dtdl_loader()
 
-    def dtdl_to_twinscale_template(
+    def dtdl_to_twin_template(
         self,
         dtmi: str,
         thing_name: Optional[str] = None,
         tenant_id: Optional[str] = None
     ) -> Dict[str, str]:
         """
-        Convert DTDL interface to TwinScale YAML template
+        Convert DTDL interface to Twin YAML template
 
         Args:
             dtmi: DTDL interface identifier
@@ -105,7 +105,7 @@ class DTDLConverterService:
         yaml_lines = []
 
         # Metadata
-        yaml_lines.append("apiVersion: twinscale.io/v1")
+        yaml_lines.append("apiVersion: twin.io/v1")
         yaml_lines.append("kind: TwinInterface")
         yaml_lines.append("metadata:")
         yaml_lines.append(f"  name: {thing_name}-interface")
@@ -196,7 +196,7 @@ class DTDLConverterService:
         yaml_lines = []
 
         # Metadata
-        yaml_lines.append("apiVersion: twinscale.io/v1")
+        yaml_lines.append("apiVersion: twin.io/v1")
         yaml_lines.append("kind: TwinInstance")
         yaml_lines.append("metadata:")
         yaml_lines.append(f"  name: {thing_name}-001")
@@ -238,13 +238,13 @@ class DTDLConverterService:
 
     def _convert_dtdl_schema(self, schema: Any) -> str:
         """
-        Convert DTDL schema to TwinScale schema string
+        Convert DTDL schema to Twin schema string
 
         Args:
             schema: DTDL schema (string or dict)
 
         Returns:
-            TwinScale schema string
+            Twin schema string
         """
         if isinstance(schema, str):
             # Simple primitive types
@@ -266,7 +266,7 @@ class DTDLConverterService:
             schema_type = schema.get("@type")
 
             if schema_type == "Enum":
-                # Return as string for TwinScale (enum validation in app logic)
+                # Return as string for Twin (enum validation in app logic)
                 return "string"
             elif schema_type == "Object":
                 return "object"
@@ -315,16 +315,16 @@ class DTDLConverterService:
 
         return '""'
 
-    def enrich_twinscale_with_dtdl(
+    def enrich_twin_with_dtdl(
         self,
         thing_data: Dict[str, Any],
         dtmi: str
     ) -> Dict[str, Any]:
         """
-        Enrich TwinScale Thing data with DTDL metadata
+        Enrich Twin Thing data with DTDL metadata
 
         Args:
-            thing_data: Existing TwinScale Thing data
+            thing_data: Existing Twin Thing data
             dtmi: DTDL interface identifier
 
         Returns:
@@ -361,7 +361,7 @@ class DTDLConverterService:
         Extract DTDL interface binding from Thing metadata
 
         Args:
-            thing_data: TwinScale Thing data
+            thing_data: Twin Thing data
 
         Returns:
             DTMI if found, None otherwise

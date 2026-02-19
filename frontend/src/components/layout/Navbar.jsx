@@ -34,11 +34,10 @@ const Navbar = () => {
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">TS</span>
+              <span className="text-white font-bold text-xl">TD</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-lg font-bold text-gray-900 dark:text-white">TwinScale</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">Lite</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-white">IoDT2 Demo</span>
             </div>
           </Link>
 

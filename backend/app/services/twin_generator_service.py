@@ -1,11 +1,11 @@
 """
-TwinScale YAML Generator Service
+Twin YAML Generator Service
 
-Converts W3C WoT Thing Descriptions to TwinScale Framework YAML format.
+Converts W3C WoT Thing Descriptions to Twin Framework YAML format.
 Generates both TwinInterface (blueprint) and TwinInstance (concrete instance) YAML files.
 
 Usage:
-    generator = TwinScaleGeneratorService()
+    generator = TwinGeneratorService()
     interface_yaml = generator.generate_twin_interface_yaml(thing_description_dict)
     instance_yaml = generator.generate_twin_instance_yaml(thing_description_dict, interface_name)
 """
@@ -16,15 +16,15 @@ from datetime import datetime
 
 try:
     # Relative import (when used as part of app)
-    from ..models.twinscale_models import (
+    from ..models import (
         TwinInterfaceCR,
         TwinInstanceCR,
-        TwinScaleMetadata,
+        TwinMetadata,
         TwinInterfaceSpec,
         TwinInstanceSpec,
-        TwinScaleProperty,
-        TwinScaleRelationship,
-        TwinScaleCommand,
+        TwinProperty,
+        TwinRelationship,
+        TwinCommand,
         ServiceSpec,
         ServiceResources,
         ServiceAutoscaling,
@@ -35,15 +35,15 @@ try:
     )
 except ImportError:
     # Absolute import (when used standalone for testing)
-    from app.models.twinscale_models import (
+    from app.models.twin_models import (
         TwinInterfaceCR,
         TwinInstanceCR,
-        TwinScaleMetadata,
+        TwinMetadata,
         TwinInterfaceSpec,
         TwinInstanceSpec,
-        TwinScaleProperty,
-        TwinScaleRelationship,
-        TwinScaleCommand,
+        TwinProperty,
+        TwinRelationship,
+        TwinCommand,
         ServiceSpec,
         ServiceResources,
         ServiceAutoscaling,
@@ -54,10 +54,10 @@ except ImportError:
     )
 
 
-class TwinScaleGeneratorService:
-    """Service for generating TwinScale YAML from WoT Thing Descriptions"""
+class TwinGeneratorService:
+    """Service for generating Twin YAML from WoT Thing Descriptions"""
 
-    NAMESPACE_PREFIX = "ems-iodt2"
+    NAMESPACE_PREFIX = "iodt2"
 
     def __init__(self):
         """Initialize the generator service"""
@@ -141,7 +141,7 @@ class TwinScaleGeneratorService:
 
         # Build TwinInterface CR
         interface_cr = TwinInterfaceCR(
-            metadata=TwinScaleMetadata(
+            metadata=TwinMetadata(
                 name=interface_name,
                 labels=labels,
                 annotations=annotations,
@@ -189,7 +189,7 @@ class TwinScaleGeneratorService:
 
         # Build TwinInstance CR
         instance_cr = TwinInstanceCR(
-            metadata=TwinScaleMetadata(
+            metadata=TwinMetadata(
                 name=instance_name,
                 labels={
                     "generated-by": "iodt2-platform",
@@ -229,7 +229,7 @@ class TwinScaleGeneratorService:
         location_name = self._normalize_name(location_data["name"])
 
         location_cr = TwinInstanceCR(
-            metadata=TwinScaleMetadata(
+            metadata=TwinMetadata(
                 name=f"{location_name}-location",
                 labels={
                     "type": "location",
@@ -238,20 +238,20 @@ class TwinScaleGeneratorService:
             ),
             spec=TwinInstanceSpec(
                 name=f"{location_name}-location",
-                interface="ems-iodt2-location",
+                interface="iodt2-location",
                 twinInstanceRelationships=[],
             )
         )
 
         return self._to_yaml(location_cr.model_dump(by_alias=True, exclude_none=True))
 
-    def validate_twinscale_yaml(
+    def validate_twin_yaml(
         self,
         yaml_content: str,
         kind: str
     ) -> ValidationResult:
         """
-        Validate TwinScale YAML content
+        Validate Twin YAML content
 
         Args:
             yaml_content: YAML string to validate
@@ -273,7 +273,7 @@ class TwinScaleGeneratorService:
                 return ValidationResult(valid=False, errors=errors)
 
             # Check required fields
-            if data.get("apiVersion") != "dtd.twinscale/v0":
+            if data.get("apiVersion") != "dtd.twin/v0":
                 errors.append(f"Invalid apiVersion: {data.get('apiVersion')}")
 
             if data.get("kind") != kind:
@@ -312,11 +312,11 @@ class TwinScaleGeneratorService:
 
     def _normalize_name(self, thing_id: str) -> str:
         """
-        Normalize thing ID to TwinScale naming convention
+        Normalize thing ID to Twin naming convention
 
         Examples:
-            urn:iodt2:sensor:temp-001 -> ems-iodt2-temp-001
-            sensor-temp-001 -> ems-iodt2-sensor-temp-001
+            urn:iodt2:sensor:temp-001 -> iodt2-temp-001
+            sensor-temp-001 -> iodt2-sensor-temp-001
         """
         # Remove URN prefix if present
         name = thing_id.split(":")[-1]
@@ -333,19 +333,19 @@ class TwinScaleGeneratorService:
     def _extract_properties(
         self,
         thing_description: Dict[str, Any]
-    ) -> List[TwinScaleProperty]:
+    ) -> List[TwinProperty]:
         """Extract properties from WoT Thing Description"""
         properties = []
         wot_properties = thing_description.get("properties", {})
 
         for prop_name, prop_def in wot_properties.items():
-            # Map WoT type to TwinScale type
+            # Map WoT type to Twin type
             wot_type = prop_def.get("type", "string")
-            twinscale_type = self._map_wot_type_to_twinscale(wot_type)
+            twin_type = self._map_wot_type_to_twin(wot_type)
 
-            property_obj = TwinScaleProperty(
+            property_obj = TwinProperty(
                 name=prop_name,
-                type=twinscale_type,
+                type=twin_type,
                 description=prop_def.get("description") or prop_def.get("title"),
                 x_writable=prop_def.get("writable", False),
                 x_minimum=prop_def.get("minimum"),
@@ -359,7 +359,7 @@ class TwinScaleGeneratorService:
     def _extract_relationships(
         self,
         thing_description: Dict[str, Any]
-    ) -> List[TwinScaleRelationship]:
+    ) -> List[TwinRelationship]:
         """Extract relationships from WoT Thing Description links"""
         relationships = []
         links = thing_description.get("links", [])
@@ -374,7 +374,7 @@ class TwinScaleGeneratorService:
             target_interface = self._extract_interface_from_href(href)
 
             if target_interface:
-                relationship = TwinScaleRelationship(
+                relationship = TwinRelationship(
                     name=rel,
                     interface=target_interface,
                     description=link.get("title"),
@@ -386,13 +386,13 @@ class TwinScaleGeneratorService:
     def _extract_commands(
         self,
         thing_description: Dict[str, Any]
-    ) -> List[TwinScaleCommand]:
+    ) -> List[TwinCommand]:
         """Extract commands/actions from WoT Thing Description"""
         commands = []
         wot_actions = thing_description.get("actions", {})
 
         for action_name, action_def in wot_actions.items():
-            command = TwinScaleCommand(
+            command = TwinCommand(
                 name=action_name,
                 description=action_def.get("description") or action_def.get("title"),
                 schema=action_def.get("input", {}),
@@ -442,8 +442,8 @@ class TwinScaleGeneratorService:
             )
         )
 
-    def _map_wot_type_to_twinscale(self, wot_type: str) -> str:
-        """Map WoT data type to TwinScale type"""
+    def _map_wot_type_to_twin(self, wot_type: str) -> str:
+        """Map WoT data type to Twin type"""
         type_mapping = {
             "number": "float",
             "integer": "integer",
@@ -460,7 +460,7 @@ class TwinScaleGeneratorService:
             return None
 
         # Try to extract interface name from URN or path
-        # Example: urn:iodt2:interface:location -> ems-iodt2-location
+        # Example: urn:iodt2:interface:location -> iodt2-location
         parts = href.split("/")[-1].split(":")
         if parts:
             return self._normalize_name(parts[-1])
@@ -502,7 +502,7 @@ class TwinScaleGeneratorService:
 # Convenience Functions
 # ============================================================================
 
-def generate_twinscale_yaml_files(
+def generate_twin_yaml_files(
     thing_description: Dict[str, Any]
 ) -> Dict[str, str]:
     """
@@ -514,7 +514,7 @@ def generate_twinscale_yaml_files(
     Returns:
         Dictionary with keys 'interface' and 'instance' containing YAML strings
     """
-    generator = TwinScaleGeneratorService()
+    generator = TwinGeneratorService()
 
     interface_yaml = generator.generate_twin_interface_yaml(thing_description)
     instance_yaml = generator.generate_twin_instance_yaml(thing_description)
@@ -526,6 +526,6 @@ def generate_twinscale_yaml_files(
 
 
 __all__ = [
-    "TwinScaleGeneratorService",
-    "generate_twinscale_yaml_files",
+    "TwinGeneratorService",
+    "generate_twin_yaml_files",
 ]

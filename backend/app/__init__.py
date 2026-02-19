@@ -1,1 +1,1 @@
-"""TwinScale-Lite"""
+"""Twin-Lite"""

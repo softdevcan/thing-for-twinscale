@@ -1,5 +1,5 @@
 /**
- * TwinScale-Lite Axios Configuration
+ * Twin-Lite Axios Configuration
  *
  * Simplified HTTP client without authentication.
  */

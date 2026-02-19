@@ -1,20 +1,20 @@
 """
-TwinScale-Lite API Router
+Twin-Lite API Router
 
-Simplified API with TwinScale, Tenant, and DTDL endpoints.
+Simplified API with Twin, Tenant, and DTDL endpoints.
 """
 
 from fastapi import APIRouter
-from .v2 import twinscale, tenants, dtdl
+from .v2 import twin, tenants, dtdl, fuseki
 
 # Create main API router
 api_router = APIRouter()
 
-# Include TwinScale routes
+# Include Twin routes
 api_router.include_router(
-    twinscale.router,
-    prefix="/v2/twinscale",
-    tags=["twinscale"]
+    twin.router,
+    prefix="/v2/twin",
+    tags=["twin"]
 )
 
 # Include Tenant routes
@@ -30,7 +30,14 @@ api_router.include_router(
     prefix="/v2"
 )
 
+# Include Fuseki routes (search, SPARQL, CRUD)
+api_router.include_router(
+    fuseki.router,
+    prefix="/v2/fuseki",
+    tags=["fuseki"]
+)
+
 
 @api_router.get("/test")
 async def test_api():
-    return {"message": "TwinScale-Lite API is working"}
+    return {"message": "Twin-Lite API is working"}

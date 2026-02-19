@@ -1,5 +1,5 @@
 """
-TwinScale-Lite API Dependencies
+Twin-Lite API Dependencies
 
 Simplified dependency injection without authentication.
 """
@@ -21,7 +21,7 @@ async def get_tenant_id(
     """
     Get tenant ID from header.
 
-    For TwinScale-Lite, tenant is optional and defaults to "default".
+    For Twin-Lite, tenant is optional and defaults to "default".
     No authentication required.
     """
     from app.core.config import get_settings

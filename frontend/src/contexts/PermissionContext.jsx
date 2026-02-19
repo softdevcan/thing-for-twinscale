@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from 'react';
 
 /**
- * Placeholder Permission Context for TwinScale-Lite
+ * Placeholder Permission Context for Twin-Lite
  * No permissions/RBAC in lite version - all actions allowed
  */
 const PermissionContext = createContext({

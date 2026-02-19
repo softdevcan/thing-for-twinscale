@@ -1,7 +1,7 @@
 """
-TwinScale-Lite API Server
+Twin-Lite API Server
 
-Lightweight Digital Twin management system using TwinScale YAML format.
+Lightweight Digital Twin management system using Twin YAML format.
 No Ditto, no WoT conversion - direct form-to-YAML-to-RDF workflow.
 """
 
@@ -27,7 +27,7 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     logger.info("=" * 60)
-    logger.info("TwinScale-Lite API Starting...")
+    logger.info("Twin-Lite API Starting...")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Fuseki URL: {settings.FUSEKI_URL}")
     logger.info("=" * 60)
@@ -40,13 +40,13 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    logger.info("TwinScale-Lite API Shutting down...")
+    logger.info("Twin-Lite API Shutting down...")
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="TwinScale-Lite API",
-    description="Lightweight Digital Twin management with TwinScale YAML format",
+    title="Twin-Lite API",
+    description="Lightweight Digital Twin management with Twin YAML format",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -67,7 +67,7 @@ app.include_router(api_router, prefix="/api")
 @app.get("/")
 async def root():
     return {
-        "name": "TwinScale-Lite API",
+        "name": "Twin-Lite API",
         "version": "1.0.0",
         "status": "running"
     }

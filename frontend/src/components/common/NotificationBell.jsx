@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 
 /**
  * Placeholder Notification Bell Component
- * For TwinScale-Lite - simplified version without actual notifications
+ * For Twin-Lite - simplified version without actual notifications
  */
 export default function NotificationBell() {
     return (

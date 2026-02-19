@@ -15,7 +15,7 @@ const Layout = () => {
       <header className="border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="text-xl font-bold text-primary">
-            TwinScale-Lite
+            Twin-Lite
           </Link>
           <nav className="flex gap-4">
             {navItems.map((item) => (

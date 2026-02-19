@@ -43,18 +43,18 @@ const SearchThings = () => {
   const [valueSearchOperator, setValueSearchOperator] = useState("gt");
   const [valueSearchValue, setValueSearchValue] = useState(30);
 
-  // Default SPARQL query updated for GRAPH structure
-  const [sparqlQuery, setSparqlQuery] = useState(`PREFIX wot: <https://www.w3.org/2019/wot/td#>
-PREFIX ditto: <http://eclipse.org/ditto/ns/things#>
+  // Default SPARQL query updated for Twin ontology
+  const [sparqlQuery, setSparqlQuery] = useState(`PREFIX ts: <http://twin.dtd/ontology#>
+PREFIX tsd: <http://iodt2.com/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-SELECT ?thing ?id ?title ?description
+SELECT ?thing ?name ?type ?description
 WHERE {
   GRAPH ?g {
-    ?thing a wot:Thing .
-    OPTIONAL { ?thing ditto:thingId ?id . }
-    OPTIONAL { ?thing wot:title ?title . }
-    OPTIONAL { ?thing wot:description ?description . }
+    ?thing a ?type .
+    ?thing ts:name ?name .
+    FILTER(?type IN (ts:TwinInterface, ts:TwinInstance))
+    OPTIONAL { ?thing ts:description ?description }
   }
 }
 LIMIT 100`);
@@ -69,7 +69,7 @@ LIMIT 100`);
 
   // Simple data structure for saved searches and search history
   const [savedSearches, setSavedSearches] = useState([
-    { id: 1, name: t('search.sampleAllDevices'), query: "urn:dev:wot" },
+    { id: 1, name: t('search.sampleAllDevices'), query: "building" },
     { id: 2, name: t('search.sampleSensors'), query: "sensor" }
   ]);
   const [searchHistory, setSearchHistory] = useState([]);
@@ -77,109 +77,104 @@ LIMIT 100`);
   // Query Templates Dialog state
   const [showTemplatesDialog, setShowTemplatesDialog] = useState(false);
 
-  // SPARQL templates - Optimized for earthquake scenario
+  // SPARQL templates - Twin ontology
   const [sparqlTemplates] = useState([
     {
       id: 1,
       name: "All Things",
-      description: "List all Things in the system",
-      query: `PREFIX wot: <https://www.w3.org/2019/wot/td#>
-PREFIX ditto: <http://eclipse.org/ditto/ns/things#>
+      description: "List all TwinInterfaces and TwinInstances",
+      query: `PREFIX ts: <http://twin.dtd/ontology#>
+PREFIX tsd: <http://iodt2.com/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
-SELECT ?thing ?id ?title
+SELECT ?thing ?name ?type ?description
 WHERE {
   GRAPH ?g {
-    ?thing a wot:Thing .
-    OPTIONAL { ?thing ditto:thingId ?id . }
-    OPTIONAL { ?thing wot:title ?title . }
+    ?thing a ?type .
+    ?thing ts:name ?name .
+    FILTER(?type IN (ts:TwinInterface, ts:TwinInstance))
+    OPTIONAL { ?thing ts:description ?description }
   }
 }
 LIMIT 100`
     },
     {
       id: 2,
-      name: "Search by ID",
-      description: "Find Things containing a specific ID",
-      query: `PREFIX wot: <https://www.w3.org/2019/wot/td#>
-PREFIX ditto: <http://eclipse.org/ditto/ns/things#>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+      name: "Search by Name",
+      description: "Find things containing a specific name",
+      query: `PREFIX ts: <http://twin.dtd/ontology#>
+PREFIX tsd: <http://iodt2.com/>
 
-SELECT ?thing ?id ?title
+SELECT ?thing ?name ?type ?description
 WHERE {
   GRAPH ?g {
-    ?thing a wot:Thing .
-    OPTIONAL { ?thing ditto:thingId ?id . }
-    OPTIONAL { ?thing wot:title ?title . }
-    FILTER(CONTAINS(STR(?thing), "urn:dev:wot"))
+    ?thing a ?type .
+    ?thing ts:name ?name .
+    FILTER(?type IN (ts:TwinInterface, ts:TwinInstance))
+    FILTER(CONTAINS(LCASE(?name), "sensor"))
+    OPTIONAL { ?thing ts:description ?description }
   }
 }
 LIMIT 50`
     },
     {
       id: 3,
-      name: "Seismic Stations",
-      description: "List all seismic monitoring stations",
-      domain: "earthquake",
-      query: `PREFIX eq: <https://earthquake.innova.com.tr/ont#>
-PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX wot: <https://www.w3.org/2019/wot/td#>
+      name: "Interfaces with Properties",
+      description: "List interfaces and their properties",
+      query: `PREFIX ts: <http://twin.dtd/ontology#>
+PREFIX tsd: <http://iodt2.com/>
 
-SELECT ?station ?title ?lat ?long
+SELECT ?interface ?name ?propName ?propType ?unit
 WHERE {
   GRAPH ?g {
-    ?station a eq:SeismicStation .
-    OPTIONAL { ?station wot:title ?title }
-    OPTIONAL {
-      ?station geo:location ?loc .
-      ?loc geo:lat ?lat .
-      ?loc geo:long ?long .
-    }
+    ?interface a ts:TwinInterface .
+    ?interface ts:name ?name .
+    ?interface ts:hasProperty ?prop .
+    ?prop ts:propertyName ?propName .
+    ?prop ts:propertyType ?propType .
+    OPTIONAL { ?prop ts:unit ?unit }
   }
 }
+ORDER BY ?name ?propName
 LIMIT 100`
     },
     {
       id: 4,
-      name: "Sensor Data",
-      description: "Query sensor data from stations",
-      domain: "earthquake",
-      query: `PREFIX eq: <https://earthquake.innova.com.tr/ont#>
-PREFIX sosa: <http://www.w3.org/ns/sosa/>
-PREFIX wot: <https://www.w3.org/2019/wot/td#>
+      name: "Instance Relationships",
+      description: "Query relationships between instances",
+      query: `PREFIX ts: <http://twin.dtd/ontology#>
+PREFIX tsd: <http://iodt2.com/>
 
-SELECT ?station ?sensor ?sensorType ?observes
+SELECT ?instance ?name ?relName ?targetName
 WHERE {
   GRAPH ?g {
-    ?station a eq:SeismicStation .
-    ?station sosa:hosts ?sensor .
-    OPTIONAL { ?sensor a ?sensorType }
-    OPTIONAL { ?sensor sosa:observes ?observes }
+    ?instance a ts:TwinInstance .
+    ?instance ts:name ?name .
+    ?instance ts:hasInstanceRelationship ?rel .
+    ?rel ts:relationshipName ?relName .
+    ?rel ts:targetInstance ?target .
+    ?target ts:name ?targetName .
   }
 }
 LIMIT 100`
     },
     {
       id: 5,
-      name: "Location Based Search",
-      description: "Find stations near specific coordinates",
-      domain: "earthquake",
-      query: `PREFIX eq: <https://earthquake.innova.com.tr/ont#>
-PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
-PREFIX wot: <https://www.w3.org/2019/wot/td#>
+      name: "Things by Type",
+      description: "Find things filtered by thing type (device, sensor, component)",
+      query: `PREFIX ts: <http://twin.dtd/ontology#>
+PREFIX tsd: <http://iodt2.com/>
 
-SELECT ?station ?title ?lat ?long
+SELECT ?thing ?name ?thingType ?description
 WHERE {
   GRAPH ?g {
-    ?station a eq:SeismicStation .
-    OPTIONAL { ?station wot:title ?title }
-    ?station geo:location ?loc .
-    ?loc geo:lat ?lat .
-    ?loc geo:long ?long .
-    FILTER(?lat > 38.0 && ?lat < 42.0)
-    FILTER(?long > 26.0 && ?long < 45.0)
+    ?thing a ts:TwinInterface .
+    ?thing ts:name ?name .
+    ?thing ts:thingType ?thingType .
+    OPTIONAL { ?thing ts:description ?description }
   }
 }
+ORDER BY ?thingType ?name
 LIMIT 100`
     }
   ]);
@@ -660,21 +655,11 @@ LIMIT 100`
               {/* Property Selection */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">{t('search.property')}</label>
-                <Select value={valueSearchProperty} onValueChange={setValueSearchProperty}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t('search.selectProperty')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="temperature">Temperature</SelectItem>
-                    <SelectItem value="humidity">Humidity</SelectItem>
-                    <SelectItem value="pressure">Pressure</SelectItem>
-                    <SelectItem value="co2">CO2</SelectItem>
-                    <SelectItem value="motion">Motion</SelectItem>
-                    <SelectItem value="brightness">Brightness</SelectItem>
-                    <SelectItem value="voltage">Voltage</SelectItem>
-                    <SelectItem value="current">Current</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={valueSearchProperty}
+                  onChange={(e) => setValueSearchProperty(e.target.value)}
+                  placeholder="e.g. temperature, humidity, acceleration..."
+                />
               </div>
 
               {/* Operator Selection */}
@@ -729,16 +714,16 @@ LIMIT 100`
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  This searches for things that:
+                  Searches TwinInterfaces in RDF that:
                   <ul className="list-disc list-inside mt-2 space-y-1">
-                    <li>Have <strong>{valueSearchProperty}</strong> property in their schema (SPARQL)</li>
-                    <li>Current value {
-                      valueSearchOperator === 'gt' ? '>' :
-                        valueSearchOperator === 'gte' ? '≥' :
-                          valueSearchOperator === 'lt' ? '<' :
-                            valueSearchOperator === 'lte' ? '≤' :
-                              valueSearchOperator === 'eq' ? '=' : '≠'
-                    } <strong>{valueSearchValue}</strong> (Ditto)</li>
+                    <li>Have a property matching <strong>{valueSearchProperty || '...'}</strong> in their schema</li>
+                    <li>Property range (min/max) {
+                      valueSearchOperator === 'gt' ? 'covers >' :
+                        valueSearchOperator === 'gte' ? 'covers ≥' :
+                          valueSearchOperator === 'lt' ? 'covers <' :
+                            valueSearchOperator === 'lte' ? 'covers ≤' :
+                              valueSearchOperator === 'eq' ? 'includes' : 'excludes'
+                    } <strong>{valueSearchValue}</strong></li>
                   </ul>
                 </AlertDescription>
               </Alert>
@@ -1023,7 +1008,7 @@ LIMIT 100`
                       ) : (
                         // Standard Thing display with link
                         <Link
-                          to={`/app/things/wot/${encodeURIComponent(thingId)}/details`}
+                          to={`/things/${encodeURIComponent(thing.name || thingId)}`}
                           className="block text-inherit no-underline"
                         >
                           <div className="py-4 hover:bg-muted/40 transition-colors cursor-pointer rounded-md px-2">

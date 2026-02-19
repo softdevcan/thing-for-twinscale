@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 /**
- * Placeholder Ditto Store for TwinScale-Lite
+ * Placeholder Ditto Store for Twin-Lite
  * No Ditto integration in lite version
  */
 const useDittoStore = create((set) => ({

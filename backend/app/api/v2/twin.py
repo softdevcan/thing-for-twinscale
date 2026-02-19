@@ -1,5 +1,5 @@
 """
-TwinScale-Lite API Endpoints
+Twin-Lite API Endpoints
 
 Direct form-to-YAML-to-RDF workflow without WoT/Ditto dependencies.
 """
@@ -10,10 +10,10 @@ from fastapi.responses import StreamingResponse
 import io
 import zipfile
 
-from app.services.twinscale_generator_service import TwinScaleGeneratorService
-from app.services.twinscale_rdf_service import TwinScaleRDFService
+from app.services.twin_generator_service import TwinGeneratorService
+from app.services.twin_rdf_service import TwinRDFService
 from app.services.location_service import LocationService
-from app.models.twinscale_models import ValidationResult
+from app.models.twin_models import ValidationResult
 from app.api.dependencies import get_tenant_id
 from pydantic import BaseModel
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 # Request/Response Models
 # ============================================================================
 
-class TwinScaleQueryRequest(BaseModel):
+class TwinQueryRequest(BaseModel):
     """Request model for SPARQL queries"""
     query: str
     limit: Optional[int] = 100
@@ -45,10 +45,10 @@ class InstanceListResponse(BaseModel):
 
 
 # ============================================================================
-# Direct Creation Models (Form → TwinScale YAML)
+# Direct Creation Models (Form → Twin YAML)
 # ============================================================================
 
-class TwinScalePropertyInput(BaseModel):
+class TwinPropertyInput(BaseModel):
     """Property input from form"""
     name: str
     type: Literal["float", "integer", "string", "boolean", "object", "array"] = "string"
@@ -59,7 +59,7 @@ class TwinScalePropertyInput(BaseModel):
     unit: Optional[str] = None
 
 
-class TwinScaleRelationshipInput(BaseModel):
+class TwinRelationshipInput(BaseModel):
     """Relationship input from form"""
     name: str
     target_interface: str
@@ -67,16 +67,16 @@ class TwinScaleRelationshipInput(BaseModel):
     description: Optional[str] = None
 
 
-class TwinScaleCommandInput(BaseModel):
+class TwinCommandInput(BaseModel):
     """Command input from form"""
     name: str
     description: Optional[str] = None
     input_schema: Optional[Dict[str, Any]] = None
 
 
-class TwinScaleCreateRequest(BaseModel):
+class TwinCreateRequest(BaseModel):
     """
-    Request model for creating TwinScale Thing directly from form data.
+    Request model for creating Twin Thing directly from form data.
     """
     # Basic info
     id: str
@@ -84,10 +84,10 @@ class TwinScaleCreateRequest(BaseModel):
     description: Optional[str] = None
 
     # Properties
-    properties: List[TwinScalePropertyInput] = []
+    properties: List[TwinPropertyInput] = []
 
     # Relationships
-    relationships: List[TwinScaleRelationshipInput] = []
+    relationships: List[TwinRelationshipInput] = []
 
     # Location (Optional)
     latitude: Optional[float] = None
@@ -96,7 +96,7 @@ class TwinScaleCreateRequest(BaseModel):
     altitude: Optional[float] = None
 
     # Commands/Actions
-    commands: List[TwinScaleCommandInput] = []
+    commands: List[TwinCommandInput] = []
 
     # Service configuration (optional)
     include_service_spec: bool = True
@@ -118,8 +118,8 @@ class TwinScaleCreateRequest(BaseModel):
     dtdl_interface: Optional[Dict[str, Any]] = None  # Selected DTDL interface metadata
 
 
-class TwinScaleCreateResponse(BaseModel):
-    """Response model for TwinScale creation"""
+class TwinCreateResponse(BaseModel):
+    """Response model for Twin creation"""
     success: bool
     interface_name: str
     instance_name: str
@@ -141,17 +141,17 @@ class ValidateYamlRequest(BaseModel):
 
 @router.post(
     "/create",
-    response_model=TwinScaleCreateResponse,
+    response_model=TwinCreateResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Create TwinScale Thing directly from form data",
+    summary="Create Twin Thing directly from form data",
     description="Create TwinInterface and TwinInstance YAML from form input and store in RDF",
 )
-async def create_twinscale_thing(
-    request: TwinScaleCreateRequest,
+async def create_twin_thing(
+    request: TwinCreateRequest,
     tenant_id: str = Depends(get_tenant_id),
 ):
     """
-    Create TwinScale Thing directly from form data.
+    Create Twin Thing directly from form data.
 
     Creates both TwinInterface (blueprint) and TwinInstance (concrete) YAML files
     and optionally stores them in Fuseki RDF database.
@@ -164,7 +164,7 @@ async def create_twinscale_thing(
     5. Return YAML content
     """
     try:
-        logger.info(f"Creating TwinScale Thing: {request.id}")
+        logger.info(f"Creating Twin Thing: {request.id}")
 
         # Build thing_description dict from form data
         thing_description = {
@@ -207,7 +207,7 @@ async def create_twinscale_thing(
             })
 
         # Initialize generator
-        generator = TwinScaleGeneratorService()
+        generator = TwinGeneratorService()
 
         # Generate YAML files with new parameters
         interface_yaml = generator.generate_twin_interface_yaml(
@@ -233,8 +233,8 @@ async def create_twinscale_thing(
         stored_in_rdf = False
         if request.store_in_rdf:
             try:
-                logger.info(f"Storing TwinScale RDF for: {request.id}")
-                rdf_service = TwinScaleRDFService()
+                logger.info(f"Storing Twin RDF for: {request.id}")
+                rdf_service = TwinRDFService()
 
                 # Prepare metadata
                 metadata = {
@@ -254,25 +254,25 @@ async def create_twinscale_thing(
                     metadata["dtdl_interface"] = request.dtdl_interface.get("dtmi")
                     metadata["dtdl_interface_name"] = request.dtdl_interface.get("displayName")
 
-                await rdf_service.store_twinscale_yaml(
+                await rdf_service.store_twin_yaml(
                     interface_yaml=interface_yaml,
                     instance_yaml=instance_yaml,
                     thing_id=request.id,
                     metadata=metadata
                 )
                 stored_in_rdf = True
-                logger.info(f"Successfully stored TwinScale RDF for: {request.id}")
+                logger.info(f"Successfully stored Twin RDF for: {request.id}")
             except Exception as rdf_error:
                 logger.warning(f"Failed to store in RDF: {rdf_error}")
 
-        return TwinScaleCreateResponse(
+        return TwinCreateResponse(
             success=True,
             interface_name=interface_name,
             instance_name=instance_name,
             interface_yaml=interface_yaml,
             instance_yaml=instance_yaml,
             stored_in_rdf=stored_in_rdf,
-            message=f"TwinScale Thing '{request.name}' created successfully"
+            message=f"Twin Thing '{request.name}' created successfully"
         )
 
     except ValueError as e:
@@ -282,27 +282,27 @@ async def create_twinscale_thing(
             detail=f"Invalid input: {str(e)}"
         )
     except Exception as e:
-        logger.error(f"Error creating TwinScale Thing: {e}")
+        logger.error(f"Error creating Twin Thing: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create TwinScale Thing: {str(e)}"
+            detail=f"Failed to create Twin Thing: {str(e)}"
         )
 
 
 @router.get(
     "/export/{interface_name}",
-    summary="Export TwinScale YAML as ZIP",
+    summary="Export Twin YAML as ZIP",
     description="Download TwinInterface and TwinInstance YAML files as ZIP",
 )
-async def export_twinscale_zip(
+async def export_twin_zip(
     interface_name: str = Path(..., description="Name of the TwinInterface to export"),
     tenant_id: str = Depends(get_tenant_id),
 ):
     """
-    Export TwinScale YAML files from RDF as ZIP.
+    Export Twin YAML files from RDF as ZIP.
     """
     try:
-        rdf_service = TwinScaleRDFService()
+        rdf_service = TwinRDFService()
 
         # Get interface details from RDF
         interface = await rdf_service.get_interface_details(interface_name, tenant_id=tenant_id)
@@ -313,7 +313,7 @@ async def export_twinscale_zip(
             )
 
         # Regenerate YAML from stored data
-        generator = TwinScaleGeneratorService()
+        generator = TwinGeneratorService()
 
         # Build thing_description from stored data
         thing_description = {
@@ -353,14 +353,14 @@ async def export_twinscale_zip(
             zip_buffer,
             media_type="application/zip",
             headers={
-                "Content-Disposition": f'attachment; filename="{interface_name}_twinscale.zip"'
+                "Content-Disposition": f'attachment; filename="{interface_name}_twin.zip"'
             }
         )
 
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error exporting TwinScale: {e}")
+        logger.error(f"Error exporting Twin: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to export: {str(e)}"
@@ -370,23 +370,23 @@ async def export_twinscale_zip(
 @router.post(
     "/validate",
     response_model=ValidationResult,
-    summary="Validate TwinScale YAML",
-    description="Validate a TwinScale YAML file (TwinInterface or TwinInstance)",
+    summary="Validate Twin YAML",
+    description="Validate a Twin YAML file (TwinInterface or TwinInstance)",
 )
-async def validate_twinscale_yaml(
+async def validate_twin_yaml(
     request: ValidateYamlRequest,
     tenant_id: str = Depends(get_tenant_id),
 ):
     """
-    Validate TwinScale YAML content.
+    Validate Twin YAML content.
     """
     try:
-        generator = TwinScaleGeneratorService()
-        validation_result = generator.validate_twinscale_yaml(request.yaml_content, request.kind)
+        generator = TwinGeneratorService()
+        validation_result = generator.validate_twin_yaml(request.yaml_content, request.kind)
         return validation_result
 
     except Exception as e:
-        logger.error(f"Error validating TwinScale YAML: {e}")
+        logger.error(f"Error validating Twin YAML: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Validation error: {str(e)}"
@@ -400,7 +400,7 @@ async def validate_twinscale_yaml(
 @router.get(
     "/rdf/interfaces",
     response_model=InterfaceListResponse,
-    summary="Query TwinScale Interfaces from RDF",
+    summary="Query Twin Interfaces from RDF",
 )
 async def query_interfaces(
     name_filter: Optional[str] = Query(None, description="Filter by interface name"),
@@ -409,7 +409,7 @@ async def query_interfaces(
 ):
     """Query TwinInterfaces from RDF database."""
     try:
-        rdf_service = TwinScaleRDFService()
+        rdf_service = TwinRDFService()
         interfaces = await rdf_service.query_interfaces(
             name_filter=name_filter,
             limit=limit,
@@ -433,7 +433,7 @@ async def query_interfaces(
 @router.get(
     "/rdf/instances",
     response_model=InstanceListResponse,
-    summary="Query TwinScale Instances from RDF",
+    summary="Query Twin Instances from RDF",
 )
 async def query_instances(
     interface_name: Optional[str] = Query(None, description="Filter by interface"),
@@ -442,7 +442,7 @@ async def query_instances(
 ):
     """Query TwinInstances from RDF database."""
     try:
-        rdf_service = TwinScaleRDFService()
+        rdf_service = TwinRDFService()
         instances = await rdf_service.query_instances(
             interface_name=interface_name,
             limit=limit,
@@ -465,7 +465,7 @@ async def query_instances(
 
 @router.get(
     "/rdf/interfaces/{interface_name}",
-    summary="Get TwinScale Interface Details",
+    summary="Get Twin Interface Details",
 )
 async def get_interface_details(
     interface_name: str = Path(..., description="Name of the TwinInterface"),
@@ -473,7 +473,7 @@ async def get_interface_details(
 ):
     """Get detailed information about a TwinInterface."""
     try:
-        rdf_service = TwinScaleRDFService()
+        rdf_service = TwinRDFService()
         interface = await rdf_service.get_interface_details(
             interface_name,
             tenant_id=tenant_id
@@ -507,7 +507,7 @@ async def get_instance_relationships(
 ):
     """Get all relationships for a TwinInstance."""
     try:
-        rdf_service = TwinScaleRDFService()
+        rdf_service = TwinRDFService()
         relationships = await rdf_service.get_instance_relationships(
             instance_name,
             tenant_id=tenant_id
@@ -532,19 +532,43 @@ async def get_instance_relationships(
     summary="Execute Custom SPARQL Query",
 )
 async def execute_sparql_query(
-    request: TwinScaleQueryRequest,
+    request: TwinQueryRequest,
     tenant_id: str = Depends(get_tenant_id),
 ):
     """Execute a custom SPARQL SELECT query."""
     try:
-        if not request.query.strip().upper().startswith("SELECT"):
+        # Auto-inject missing prefixes
+        query_text = request.query
+        known_prefixes = {
+            "ts:": 'PREFIX ts: <http://twin.dtd/ontology#>',
+            "tsd:": 'PREFIX tsd: <http://iodt2.com/>',
+            "rdf:": 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>',
+            "rdfs:": 'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>',
+            "xsd:": 'PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>',
+        }
+        upper = query_text.upper()
+        missing = [decl for usage, decl in known_prefixes.items()
+                   if usage in query_text and decl.upper() not in upper]
+        if missing:
+            query_text = "\n".join(missing) + "\n\n" + query_text
+
+        # Validate SELECT (skip PREFIX lines)
+        is_select = False
+        for line in query_text.strip().splitlines():
+            stripped = line.strip().upper()
+            if not stripped or stripped.startswith("PREFIX"):
+                continue
+            is_select = stripped.startswith("SELECT")
+            break
+
+        if not is_select:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Only SELECT queries are allowed"
             )
 
-        rdf_service = TwinScaleRDFService()
-        results = await rdf_service._execute_query(request.query)
+        rdf_service = TwinRDFService()
+        results = await rdf_service._execute_query(query_text)
         parsed_results = rdf_service._parse_sparql_results(results)
 
         if request.limit:
@@ -568,16 +592,16 @@ async def execute_sparql_query(
 
 @router.delete(
     "/rdf/interfaces/{interface_name}",
-    summary="Delete TwinScale Interface from RDF",
+    summary="Delete Twin Interface from RDF",
 )
-async def delete_twinscale_interface(
+async def delete_twin_interface(
     interface_name: str = Path(..., description="Name of the TwinInterface to delete"),
     tenant_id: str = Depends(get_tenant_id),
 ):
     """Delete a TwinInterface and all its instances from RDF."""
     try:
-        rdf_service = TwinScaleRDFService()
-        success = await rdf_service.delete_twinscale(interface_name, tenant_id=tenant_id)
+        rdf_service = TwinRDFService()
+        success = await rdf_service.delete_twin(interface_name, tenant_id=tenant_id)
 
         if success:
             return {

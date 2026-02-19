@@ -1,9 +1,9 @@
 """
-TwinScale Framework YAML Models
+Twin Framework YAML Models
 Kubernetes CRD format for TwinInterface and TwinInstance
 
-Based on TwinScale DTD specification:
-- apiVersion: dtd.twinscale/v0
+Based on Twin DTD specification:
+- apiVersion: dtd.twin/v0
 - kind: TwinInterface | TwinInstance
 """
 from typing import Optional, Dict, List, Any, Literal
@@ -14,9 +14,9 @@ from pydantic import BaseModel, Field, field_validator
 # Common Models
 # ============================================================================
 
-class TwinScaleMetadata(BaseModel):
-    """Kubernetes-style metadata for TwinScale resources"""
-    name: str = Field(..., description="Unique name (ems-iodt2-<thing-name>)")
+class TwinMetadata(BaseModel):
+    """Kubernetes-style metadata for Twin resources"""
+    name: str = Field(..., description="Unique name (iodt2-<thing-name>)")
     namespace: Optional[str] = Field(None, description="Optional namespace")
     labels: Optional[Dict[str, str]] = Field(default_factory=dict)
     annotations: Optional[Dict[str, str]] = Field(default_factory=dict)
@@ -29,7 +29,7 @@ class TwinScaleMetadata(BaseModel):
 # TwinInterface Models (Blueprint/Template)
 # ============================================================================
 
-class TwinScaleProperty(BaseModel):
+class TwinProperty(BaseModel):
     """Property definition in TwinInterface"""
     name: str
     type: Literal["float", "integer", "string", "boolean", "object", "array"]
@@ -44,7 +44,7 @@ class TwinScaleProperty(BaseModel):
         extra = "allow"
 
 
-class TwinScaleRelationship(BaseModel):
+class TwinRelationship(BaseModel):
     """Relationship definition in TwinInterface"""
     name: str
     interface: str = Field(..., description="Target interface name")
@@ -54,7 +54,7 @@ class TwinScaleRelationship(BaseModel):
         extra = "allow"
 
 
-class TwinScaleCommand(BaseModel):
+class TwinCommand(BaseModel):
     """Command/Action definition in TwinInterface"""
     name: str
     description: Optional[str] = None
@@ -106,10 +106,10 @@ class HistoricalStoreSpec(BaseModel):
 
 class TwinInterfaceSpec(BaseModel):
     """TwinInterface specification"""
-    name: str = Field(..., description="Interface name (ems-iodt2-<name>)")
-    properties: List[TwinScaleProperty] = Field(default_factory=list)
-    relationships: List[TwinScaleRelationship] = Field(default_factory=list)
-    commands: List[TwinScaleCommand] = Field(default_factory=list)
+    name: str = Field(..., description="Interface name (iodt2-<name>)")
+    properties: List[TwinProperty] = Field(default_factory=list)
+    relationships: List[TwinRelationship] = Field(default_factory=list)
+    commands: List[TwinCommand] = Field(default_factory=list)
     service: Optional[ServiceSpec] = None
     eventStore: Optional[EventStoreSpec] = Field(default_factory=EventStoreSpec)
     historicalStore: Optional[HistoricalStoreSpec] = Field(default_factory=HistoricalStoreSpec)
@@ -125,9 +125,9 @@ class TwinInterfaceCR(BaseModel):
     Represents a blueprint/template for a Digital Twin.
     Defines properties, relationships, commands, and service configuration.
     """
-    apiVersion: str = Field(default="dtd.twinscale/v0")
+    apiVersion: str = Field(default="dtd.twin/v0")
     kind: Literal["TwinInterface"] = "TwinInterface"
-    metadata: TwinScaleMetadata
+    metadata: TwinMetadata
     spec: TwinInterfaceSpec
 
     class Config:
@@ -150,7 +150,7 @@ class TwinInstanceRelationship(BaseModel):
 
 class TwinInstanceSpec(BaseModel):
     """TwinInstance specification"""
-    name: str = Field(..., description="Instance name (ems-iodt2-<name>)")
+    name: str = Field(..., description="Instance name (iodt2-<name>)")
     interface: str = Field(..., description="Reference to TwinInterface")
     twinInstanceRelationships: List[TwinInstanceRelationship] = Field(default_factory=list)
 
@@ -165,9 +165,9 @@ class TwinInstanceCR(BaseModel):
     Represents a concrete instance of a Digital Twin.
     Links to a TwinInterface and defines specific relationships to other instances.
     """
-    apiVersion: str = Field(default="dtd.twinscale/v0")
+    apiVersion: str = Field(default="dtd.twin/v0")
     kind: Literal["TwinInstance"] = "TwinInstance"
-    metadata: TwinScaleMetadata
+    metadata: TwinMetadata
     spec: TwinInstanceSpec
 
     class Config:
@@ -190,10 +190,10 @@ class ValidationResult(BaseModel):
 # ============================================================================
 
 __all__ = [
-    "TwinScaleMetadata",
-    "TwinScaleProperty",
-    "TwinScaleRelationship",
-    "TwinScaleCommand",
+    "TwinMetadata",
+    "TwinProperty",
+    "TwinRelationship",
+    "TwinCommand",
     "ServiceResources",
     "ServiceAutoscaling",
     "ServiceSpec",

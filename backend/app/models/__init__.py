@@ -1,1 +1,1 @@
-"""TwinScale-Lite Models"""
+"""Twin-Lite Models"""

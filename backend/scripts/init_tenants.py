@@ -1,5 +1,5 @@
 """
-Initialize Tenants for TwinScale-Lite
+Initialize Tenants for Twin-Lite
 
 This script creates default tenants for the system.
 Run this after database initialization.
@@ -40,7 +40,7 @@ def create_default_tenants():
             {
                 "tenant_id": "default",
                 "name": "Default Tenant",
-                "description": "Default tenant for TwinScale-Lite",
+                "description": "Default tenant for Twin-Lite",
                 "is_active": True,
                 "max_things": 10000
             },
@@ -84,6 +84,6 @@ def create_default_tenants():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("TwinScale-Lite Tenant Initialization")
+    print("Twin-Lite Tenant Initialization")
     print("=" * 60)
     create_default_tenants()

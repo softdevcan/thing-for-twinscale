@@ -2,7 +2,7 @@
 DTDL API Router
 
 Endpoints for browsing, searching, and retrieving DTDL interfaces from the library.
-Supports interface suggestion based on TwinScale Thing data.
+Supports interface suggestion based on Twin Thing data.
 """
 
 from fastapi import APIRouter, HTTPException, Query
@@ -99,7 +99,7 @@ async def suggest_interfaces(
     request: InterfaceSuggestionRequest,
     ):
     """
-    Suggest DTDL interfaces based on TwinScale Thing data
+    Suggest DTDL interfaces based on Twin Thing data
 
     Analyzes thing_type, domain, properties, telemetry, and keywords
     to recommend appropriate DTDL interfaces.
@@ -245,7 +245,7 @@ async def validate_thing(
     request: Dict[str, Any],
     ):
     """
-    Validate a TwinScale Thing against a DTDL interface
+    Validate a Twin Thing against a DTDL interface
 
     Request Body:
     - thing_data: Thing properties and telemetry
@@ -395,12 +395,12 @@ async def get_interface_requirements(
         raise HTTPException(status_code=500, detail=f"Failed to get interface requirements: {str(e)}")
 
 
-@router.post("/convert/to-twinscale")
-async def convert_to_twinscale(
+@router.post("/convert/to-twin")
+async def convert_to_twin(
     request: Dict[str, Any],
     ):
     """
-    Convert DTDL interface to TwinScale YAML template
+    Convert DTDL interface to Twin YAML template
 
     Request Body:
     - dtmi: DTDL interface identifier (required)
@@ -421,9 +421,9 @@ async def convert_to_twinscale(
         if not dtmi:
             raise HTTPException(status_code=400, detail="dtmi is required")
 
-        result = converter.dtdl_to_twinscale_template(dtmi, thing_name, tenant_id)
+        result = converter.dtdl_to_twin_template(dtmi, thing_name, tenant_id)
 
-        logger.info(f"Converted {dtmi} to TwinScale template ")
+        logger.info(f"Converted {dtmi} to Twin template ")
 
         return result
 
@@ -432,8 +432,8 @@ async def convert_to_twinscale(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to convert to TwinScale: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to convert to TwinScale: {str(e)}")
+        logger.error(f"Failed to convert to Twin: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to convert to Twin: {str(e)}")
 
 
 @router.post("/enrich")
@@ -441,10 +441,10 @@ async def enrich_with_dtdl(
     request: Dict[str, Any],
     ):
     """
-    Enrich TwinScale Thing with DTDL metadata
+    Enrich Twin Thing with DTDL metadata
 
     Request Body:
-    - thing_data: TwinScale Thing data (required)
+    - thing_data: Twin Thing data (required)
     - dtmi: DTDL interface identifier (required)
 
     Returns:
@@ -461,7 +461,7 @@ async def enrich_with_dtdl(
         if not dtmi:
             raise HTTPException(status_code=400, detail="dtmi is required")
 
-        enriched = converter.enrich_twinscale_with_dtdl(thing_data, dtmi)
+        enriched = converter.enrich_twin_with_dtdl(thing_data, dtmi)
 
         logger.info(f"Enriched Thing with {dtmi} metadata ")
 

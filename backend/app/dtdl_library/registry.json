@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "description": "DTDL Interface Registry for TwinScale/IoDT2 Platform",
+  "description": "DTDL Interface Registry for IoDT2 Platform",
   "lastUpdated": "2026-02-05",
   "interfaces": [
     {

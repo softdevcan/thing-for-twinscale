@@ -1,1 +1,1 @@
-"""TwinScale-Lite Services"""
+"""Twin-Lite Services"""

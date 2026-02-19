@@ -119,7 +119,7 @@ dist-ssr/
 *.db
 *.sqlite
 *.sqlite3
-twinscale_lite.db
+iodt2_thing.db
 
 # IDE
 .vscode/

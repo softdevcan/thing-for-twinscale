@@ -2,24 +2,24 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/theme-provider'
 import Layout from '@/components/layout/Layout'
-import CreateTwinScaleThing from '@/pages/twinscale/CreateTwinScaleThing'
-import TwinScaleThingList from '@/pages/twinscale/TwinScaleThingList'
-import TwinScaleThingDetails from '@/pages/twinscale/TwinScaleThingDetails'
-import SearchThings from '@/pages/twinscale/SearchThings'
+import CreateTwinThing from '@/pages/twin/CreateTwinThing'
+import TwinThingList from '@/pages/twin/TwinThingList'
+import TwinThingDetails from '@/pages/twin/TwinThingDetails'
+import SearchThings from '@/pages/twin/SearchThings'
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="twinscale-lite-theme">
+    <ThemeProvider defaultTheme="light" storageKey="twin-lite-theme">
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/things" replace />} />
             
-            {/* TwinScale Thing Routes */}
-            <Route path="things" element={<TwinScaleThingList />} />
-            <Route path="things/create" element={<CreateTwinScaleThing />} />
+            {/* Twin Thing Routes */}
+            <Route path="things" element={<TwinThingList />} />
+            <Route path="things/create" element={<CreateTwinThing />} />
             <Route path="things/search" element={<SearchThings />} />
-            <Route path="things/:interfaceName" element={<TwinScaleThingDetails />} />
+            <Route path="things/:interfaceName" element={<TwinThingDetails />} />
             
             {/* 404 */}
             <Route path="*" element={
